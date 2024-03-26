@@ -1,0 +1,4 @@
+{
+    "WebAssembly": [ "glm:wasm32-emscripten" ],
+    "Native": [ "glfw3", "glew", "glm" ]
+}

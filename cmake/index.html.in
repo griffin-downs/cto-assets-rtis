@@ -1,0 +1,137 @@
+<!-- ===========================================================================
+Copyright (C) 2024, Griffin Downs. All rights reserved.
+This file is part of cto-assets-rtis. See LICENSE.md for details.
+=============================================================================-->
+
+
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1.0, user-scalable=no">
+    <title>cto-assets-rtis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            touch-action: manipulation;
+            background-color: #E65100;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 0;
+            border: 0 none;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .button-container {
+            position: fixed;
+            bottom: 3vh;
+            right: 3vw;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 2vh;
+            z-index: 1000;
+        }
+
+        .icon-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(12px + 2.5vh + 2.5vw);
+            background-color: #8b8b8b95;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            padding: 0.5vh 1.5vw;
+            text-decoration: none;
+        }
+
+        #qrCode {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 60vw;
+            max-width: 300px;
+            height: auto;
+        }
+
+        #qrCode img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: 20px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-container">
+        <canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1>
+        </canvas>
+    </div>
+    <script>
+        var Module = {
+            canvas: (function () {
+                var canvas = document.getElementById('canvas');
+                return canvas;
+            })()
+        };
+    </script>
+    <script async src="cto-assets-rtis.js"></script>
+
+    <div class="button-container">
+        <button id="qrButton" class="icon-button"><i class="fas fa-qrcode"></i></button>
+
+        <a href="https://github.com/griffin-downs/cto-assets-rtis" target="_blank" class="icon-button">
+            <i class="fab fa-github"></i>
+        </a>
+    </div>
+
+    <div id="qrCode">
+        <img src="qr-code.svg" alt="QR Code" draggable="false">
+    </div>
+    <script>
+        document
+            .getElementById('qrButton')
+            .addEventListener(
+                'click',
+                () => {
+                    let qrCodeDiv = document.getElementById('qrCode');
+                    let display = qrCodeDiv.style.display;
+                    qrCodeDiv.style.display =
+                        (!display || display === 'none')
+                            ? 'block'
+                            : 'none';
+                });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let stopTouchPropagation = e => { e.stopPropagation(); };
+            let elements =
+                document.querySelectorAll(
+                    '.button-container, .button-container *');
+            elements.forEach(el => {
+                el.addEventListener('touchend', stopTouchPropagation, { passive: false });
+                el.addEventListener('touchmove', stopTouchPropagation, { passive: false });
+            });
+        });
+    </script>
+</body>
+</html>

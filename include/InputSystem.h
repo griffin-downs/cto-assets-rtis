@@ -89,8 +89,11 @@ private:
 
         if (mouseStates.firstMove)
         {
-            mouseStates.lastCursorPosition.x = clientX;
-            mouseStates.lastCursorPosition.y = clientY;
+            mouseStates.currentCursorPosition.x = clientX;
+            mouseStates.currentCursorPosition.y = clientY;
+
+            mouseStates.lastCursorPosition = mouseStates.currentCursorPosition;
+
             mouseStates.firstMove = false;
             return EM_TRUE;
         }
@@ -132,8 +135,11 @@ private:
 
         if (mouseStates.firstMove)
         {
-            mouseStates.lastCursorPosition.x = xPos;
-            mouseStates.lastCursorPosition.y = yPos;
+            mouseStates.currentCursorPosition.x = xPos;
+            mouseStates.currentCursorPosition.y = yPos;
+
+            mouseStates.lastCursorPosition = mouseStates.currentCursorPosition;
+
             mouseStates.firstMove = false;
             return;
         }
@@ -188,13 +194,13 @@ private:
         }
 #endif
 
-        bool keyDown = action == GLFW_PRESS || action == GLFW_REPEAT;
+        bool keyPressed = action == GLFW_PRESS || action == GLFW_REPEAT;
         ApplicationStateManager
             ::getStateFromWindow(window)
             .inputSystem
             .getStates()
             .keyStates
-            .setKeyState(key, keyDown);
+            .setKeyState(key, keyPressed);
     }
 };
 } // namespace ctoAssetsRTIS

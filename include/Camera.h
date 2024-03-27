@@ -18,19 +18,19 @@ namespace ctoAssetsRTIS
 class Camera
 {
 private:
-    static auto getRightVector()
+    static auto getGlobalRightVector()
     {
         static const auto rightVector = glm::vec3(1.0f, 0.0f, 0.0f);
         return rightVector;
     }
 
-    static auto getUpVector()
+    static auto getGlobalUpVector()
     {
         static const auto upVector = glm::vec3(0.0f, 1.0f, 0.0f);
         return upVector;
     }
 
-    static auto getForwardVector()
+    static auto getGlobalForwardVector()
     {
         static const auto forwardVector = glm::vec3(0.0f, 0.0f, 1.0f);
         return forwardVector;
@@ -51,12 +51,12 @@ public:
         const auto yawQuaternion =
             glm::angleAxis(
                 glm::radians(configuration.initialYawDegrees),
-                getUpVector());
+                getGlobalUpVector());
 
         const auto pitchQuaternion =
             glm::angleAxis(
                 glm::radians(configuration.initialPitchDegrees),
-                getRightVector());
+                getGlobalRightVector());
 
         return pitchQuaternion * yawQuaternion;
     }())
@@ -73,9 +73,25 @@ public:
     Camera& operator=(const Camera&) = delete;
 
 private:
-    auto calculateFrontVector() const
+    auto getCameraForwardVector() const
     {
-        return this->orientation * glm::vec3(0.0f, 0.0f, -1.0f);
+        return this->orientation * -getGlobalForwardVector();
+    }
+
+    template<typename VectorType>
+    static auto isZeroVector(const VectorType& vector)
+    {
+        const auto allEpsilonEqual =
+        [](
+            const auto& vector1,
+            const auto& vector2,
+            float epsilon = std::numeric_limits<float>::epsilon())
+        {
+            return glm::all(glm::epsilonEqual(vector1, vector2, epsilon));
+        };
+
+        static auto zeroVector = VectorType();
+        return allEpsilonEqual(vector, zeroVector);
     }
 
 public:
@@ -90,29 +106,28 @@ public:
         const auto dt = arguments.dt;
 
         const auto& inputStates = arguments.inputStates;
-        this->processInput(
+        this->processMouseInput(
             inputStates.mouseStates,
             arguments.viewportDimensions,
             dt);
-        this->processInput(inputStates.keyStates, dt);
+        this->processKeyInput(inputStates.keyStates, dt);
 
-        const float angleMagnitude = glm::length(this->velocity) * dt;
-        if (angleMagnitude >= std::numeric_limits<float>::epsilon())
+        if (!isZeroVector(this->velocity))
         {
             const auto yawQuaternion =
                 glm::angleAxis(
                     this->velocity.x,
-                    this->orientation * getUpVector());
+                    this->orientation * getGlobalUpVector());
 
             const auto pitchQuaternion =
                 glm::angleAxis(
                     this->velocity.y,
-                    this->orientation * getRightVector());
+                    this->orientation * getGlobalRightVector());
 
             const auto rollQuaternion =
                 glm::angleAxis(
                     this->velocity.z,
-                    this->orientation * getForwardVector());
+                    this->orientation * getGlobalForwardVector());
 
             this->orientation = yawQuaternion * this->orientation;
             this->orientation = pitchQuaternion * this->orientation;
@@ -121,7 +136,7 @@ public:
             this->orientation = glm::normalize(this->orientation);
         }
 
-        this->position = -this->calculateFrontVector() * radius;
+        this->position = -this->getCameraForwardVector() * radius;
         if (glm::length(this->position) != radius)
         {
             this->position = glm::normalize(this->position) * radius;
@@ -130,7 +145,7 @@ public:
         this->velocity *= 1.0f - std::clamp(dampingFactor * dt, 0.0f, 1.0f);
     }
 
-    void processInput(
+    void processMouseInput(
         const MouseStates& mouseStates,
         ViewportDimensions viewportDimensions,
         float dt)
@@ -140,12 +155,32 @@ public:
             return;
         }
 
+        const auto cursorDidNotMove =
+        [&]
+        {
+            static auto previousCurrentCursorPosition = glm::vec2();
+
+            const auto cursorPositionDelta =
+                mouseStates.currentCursorPosition
+                    - previousCurrentCursorPosition;
+
+            previousCurrentCursorPosition = mouseStates.currentCursorPosition;
+
+
+            return isZeroVector(cursorPositionDelta);
+        }();
+
+        if (cursorDidNotMove)
+        {
+            return;
+        }
+
         const auto clampToViewportDimensions =
-        [&](const auto& vec)
+        [&](const auto& vector)
         {
             return
                 glm::clamp(
-                    vec,
+                    vector,
                     glm::vec2(),
                     glm::vec2(
                         viewportDimensions.getWidth(),
@@ -158,68 +193,81 @@ public:
         const auto clampedCurrentPosition =
             clampToViewportDimensions(mouseStates.currentCursorPosition);
 
-        auto touchMovement =
+        auto deltaVelocity =
             glm::vec3(clampedLastPosition - clampedCurrentPosition, 0.0f);
 
-        touchMovement.x /= viewportDimensions.getWidth();
-        touchMovement.y /= viewportDimensions.getHeight();
-
-        const auto movementMagnitude = glm::length(touchMovement);
-        if (movementMagnitude <= std::numeric_limits<float>::epsilon())
+        if (isZeroVector(deltaVelocity))
         {
             return;
         }
 
-        touchMovement =
-            glm::normalize(touchMovement) *
-                std::clamp(movementMagnitude, 0.0f, glm::radians(2.5f));
+        deltaVelocity.x /= viewportDimensions.getWidth();
+        deltaVelocity.y /= viewportDimensions.getHeight();
 
-        const auto accelerationFactor =
+        deltaVelocity =
+            glm::normalize(deltaVelocity)
+                * std::clamp(
+                    glm::length(deltaVelocity),
+                    0.0f,
+                    glm::radians(2.5f));
+
+        const auto inputBasedAccelerationFactor =
             mouseStates.touchActive
                 ? 150.0f
                 : 100.0f;
 
-        touchMovement *= this->rotationSensitivity * dt * accelerationFactor;
-        this->velocity += touchMovement;
-    }
-
-    void processInput(const KeyStates& keyStates, float dt)
-    {
-        auto deltaVelocity = glm::vec3(0.0f);
-        const auto acceleration = this->rotationSensitivity * dt;
-        if (keyStates.wPressed)
-        {
-            deltaVelocity.y += acceleration;
-        }
-        if (keyStates.aPressed)
-        {
-            deltaVelocity.x -= acceleration;
-        }
-        if (keyStates.sPressed)
-        {
-            deltaVelocity.y -= acceleration;
-        }
-        if (keyStates.dPressed)
-        {
-            deltaVelocity.x += acceleration;
-        }
-        if (keyStates.qPressed)
-        {
-            deltaVelocity.z -= acceleration * 2.0f;
-        }
-        if (keyStates.ePressed)
-        {
-            deltaVelocity.z += acceleration * 2.0f;
-        }
+        deltaVelocity *=
+            inputBasedAccelerationFactor
+                * this->rotationSensitivity
+                * dt;
 
         this->velocity += deltaVelocity;
     }
 
-    glm::mat4 getViewMatrix() const
+    void processKeyInput(const KeyStates& keyStates, float dt)
+    {
+        auto deltaVelocity = glm::vec3();
+        if (keyStates.wPressed)
+        {
+            deltaVelocity.y += 1.0f;
+        }
+        if (keyStates.aPressed)
+        {
+            deltaVelocity.x -= 1.0f;
+        }
+        if (keyStates.sPressed)
+        {
+            deltaVelocity.y -= 1.0f;
+        }
+        if (keyStates.dPressed)
+        {
+            deltaVelocity.x += 1.0f;
+        }
+        if (keyStates.qPressed)
+        {
+            deltaVelocity.z -= 1.0f;
+        }
+        if (keyStates.ePressed)
+        {
+            deltaVelocity.z += 1.0f;
+        }
+
+        if (isZeroVector(deltaVelocity))
+        {
+            return;
+        }
+
+        deltaVelocity =
+            glm::normalize(deltaVelocity) * this->rotationSensitivity * dt;
+
+        this->velocity += deltaVelocity;
+    }
+
+    auto getViewMatrix() const
     {
         return glm::lookAt(
             this->position,
-            this->position + this->calculateFrontVector(),
+            this->position + this->getCameraForwardVector(),
             this->orientation * glm::vec3(0.0f, 1.0f, 0.0f));
     }
 

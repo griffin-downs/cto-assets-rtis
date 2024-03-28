@@ -64,7 +64,9 @@ foreach ($port in $portDependencies) {
 }
 
 if ($missingDependencies.Length -gt 0) {
-    vcpkg/vcpkg.exe install ($missingDependencies -join ' ')
+    foreach ($missingPort in $missingDependencies) {
+        vcpkg/vcpkg.exe install $missingPort
+    }
 }
 
 function Invoke-CMakeConfigure {

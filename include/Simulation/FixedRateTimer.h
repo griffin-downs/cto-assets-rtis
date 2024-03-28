@@ -10,6 +10,11 @@
 #include <exception>
 #include <thread>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
+
 namespace ctoAssetsRTIS
 {
 template<typename T>

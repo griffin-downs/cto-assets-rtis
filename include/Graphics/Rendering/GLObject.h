@@ -12,7 +12,7 @@
 #include <GL/glew.h>
 #endif
 
-#include "Vertex.h"
+#include "Graphics/Model/Mesh/Vertex.h"
 
 namespace ctoAssetsRTIS
 {

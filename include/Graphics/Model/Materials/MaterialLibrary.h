@@ -6,11 +6,13 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
+#include <format>
+#include <stdexcept>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
-#include <utility>
 
 namespace ctoAssetsRTIS
 {

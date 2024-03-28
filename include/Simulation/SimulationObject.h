@@ -6,16 +6,15 @@
 
 #pragma once
 
+#include "Graphics/Model/Model.h"
+#include "Transform.h"
+
+
 namespace ctoAssetsRTIS
 {
-template<typename ResultType, typename StringProvider>
-class CompileTimeDeserialize;
-
-template<typename ResultType, typename StringProvider>
-auto deserialize()
+struct SimulationObject
 {
-    return
-        ResultType(
-            CompileTimeDeserialize<ResultType, StringProvider>::value);
-}
+    const Model& model;
+    Transform transform;
+};
 } // namespace ctoAssetsRTIS

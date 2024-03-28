@@ -6,15 +6,14 @@
 
 #pragma once
 
-#include "Model.h"
-#include "Transform.h"
-
+#include "Materials/MaterialLibrary.h"
+#include "Mesh/Mesh.h"
 
 namespace ctoAssetsRTIS
 {
-struct SimulationObject
+struct Model
 {
-    const Model& model;
-    Transform transform;
+    const Mesh mesh;
+    const MaterialLibrary materialLibrary;
 };
 } // namespace ctoAssetsRTIS

@@ -73,16 +73,13 @@ constexpr auto get(const ViewportDimensions& dimensions) -> decltype(auto)
 namespace std
 {
 template<>
-class tuple_size<
-    ctoAssetsRTIS::ViewportDimensions
-> : public integral_constant<size_t, 2>
+class tuple_size<ctoAssetsRTIS::ViewportDimensions>
+: public integral_constant<size_t, 2>
 {
 };
 
 template<size_t N>
-class tuple_element<N,
-    ctoAssetsRTIS::ViewportDimensions
->
+class tuple_element<N, ctoAssetsRTIS::ViewportDimensions>
 {
 public:
     using type =

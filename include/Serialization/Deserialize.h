@@ -6,14 +6,17 @@
 
 #pragma once
 
-#include "MaterialLibrary.h"
-#include "Mesh.h"
 
 namespace ctoAssetsRTIS
 {
-struct Model
+template<typename ResultType, typename StringProvider>
+class CompileTimeDeserialize;
+
+template<typename ResultType, typename StringProvider>
+auto deserialize()
 {
-    const Mesh mesh;
-    const MaterialLibrary materialLibrary;
-};
+    return
+        ResultType(
+            CompileTimeDeserialize<ResultType, StringProvider>::value);
+}
 } // namespace ctoAssetsRTIS

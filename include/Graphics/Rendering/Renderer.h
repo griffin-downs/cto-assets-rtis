@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "FixedRateTimer.h"
 #include "FragmentShader.h"
 #include "Shader.h"
-#include "SimulationObject.h"
+#include "Simulation/FixedRateTimer.h"
+#include "Simulation/SimulationObject.h"
 #include "VertexShader.h"
 
 

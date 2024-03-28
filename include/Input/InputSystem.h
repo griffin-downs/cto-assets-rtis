@@ -10,7 +10,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "Camera.h"
+#include "Graphics/Camera/Camera.h"
 #include "InputStates.h"
 
 namespace ctoAssetsRTIS

@@ -18,8 +18,8 @@
 
 #include <GLFW/glfw3.h>
 
-#include "ApplicationStateManager.h"
-#include "ProjectionMatrixManager.h"
+#include "Application/ApplicationStateManager.h"
+#include "Graphics/Rendering/ProjectionMatrixManager.h"
 #include "ViewportDimensions.h"
 
 

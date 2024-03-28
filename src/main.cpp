@@ -12,16 +12,18 @@
 
 #include <functional>
 
-#include "WindowSystem.h"
+#include "Window/WindowSystem.h"
 
 #include "RubiksCubeMtl.h"
 #include "RubiksCubeObj.h"
-#include "FixedRateTimer.h"
-#include "InputSystem.h"
-#include "Mesh.h"
-#include "Model.h"
-#include "Renderer.h"
-#include "Rotation.h"
+#include "Graphics/Camera/Camera.h"
+#include "Graphics/Model/Mesh/Mesh.h"
+#include "Graphics/Model/Model.h"
+#include "Graphics/Rendering/Renderer.h"
+#include "Graphics/Rendering/ProjectionMatrixManager.h"
+#include "Input/InputSystem.h"
+#include "Simulation/FixedRateTimer.h"
+#include "Simulation/SimulationObject.h"
 
 
 namespace ctoAssetsRTIS

@@ -12,8 +12,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "Deserialize.h"
-#include "ParseStructuredSequentialData.h"
+#include "Serialization/Deserialize.h"
+#include "Serialization/ParseStructuredSequentialData.h"
 #include "Vertex.h"
 
 namespace ctoAssetsRTIS

@@ -258,7 +258,9 @@ public:
         }
 
         deltaVelocity =
-            glm::normalize(deltaVelocity) * this->rotationSensitivity * dt;
+            glm::normalize(deltaVelocity)
+                * this->rotationSensitivity
+                * dt;
 
         this->velocity += deltaVelocity;
     }
@@ -268,7 +270,7 @@ public:
         return glm::lookAt(
             this->position,
             this->position + this->getCameraForwardVector(),
-            this->orientation * glm::vec3(0.0f, 1.0f, 0.0f));
+            this->orientation * getGlobalUpVector());
     }
 
 private:

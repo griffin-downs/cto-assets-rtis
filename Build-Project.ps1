@@ -17,13 +17,11 @@ param(
     [string]$CMakeBuildType = 'MinSizeRel'
 )
 
-if ($Clean) {
-    Remove-Item -Path $BuildDirectory -Recurse -Force | Out-Null
-}
-
 $vcpkgExists = Test-Path 'vcpkg/vcpkg.exe' -PathType Leaf
 if (-not $vcpkgExists) {
-    Remove-Item -Path 'vcpkg' -Recurse -Force | Out-Null
+    if (Test-Path 'vcpkg' -PathType Container) {
+        Remove-Item -Path 'vcpkg' -Recurse -Force | Out-Null
+    }
     git submodule update --init 'vcpkg'
     vcpkg/bootstrap-vcpkg.bat
 }
@@ -36,7 +34,9 @@ $emscriptenToolchain = `
 if ($Target -eq 'WebAssembly') {
     $emscriptenToolchainExists = Test-Path $emscriptenToolchain -PathType Leaf
     if (-not $emscriptenToolchainExists) {
-        Remove-Item -Path 'emsdk' -Recurse -Force | Out-Null
+        if (Test-Path 'emsdk' -PathType Container) {
+            Remove-Item -Path 'emsdk' -Recurse -Force
+        }
         git submodule update --init 'emsdk'
         emsdk/emsdk install latest
     }
@@ -49,23 +49,26 @@ if ($Target -eq 'WebAssembly') {
 $portDependencies = Get-Content 'PortDependencies.json' | ConvertFrom-Json
 $portDependencies = `
     if ($Target -eq 'WebAssembly') {
-        $portDependencies.WebAssembly
+        $portDependencies.WebAssembly | ForEach-Object {
+            "$($_):wasm32-emscripten"
+        }
     } else {
-        $portDependencies.Native
+        $defaultTriplet = `
+            if ($IsWindows) { 'x64-windows' }
+            elseif ($IsLinux) { 'x64-linux' }
+            elseif ($IsMacOs) { 'x64-osx' }
+            else { throw "Unknown platform" }
+
+        $portDependencies.Native | ForEach-Object {
+            "$($_):$defaultTriplet"
+        }
     }
 
-$missingDependencies = @()
 foreach ($port in $portDependencies) {
     $output = vcpkg/vcpkg.exe list $port 2> $null
 
     if (-not $output -or $output -notmatch $port) {
-        $missingDependencies += $port
-    }
-}
-
-if ($missingDependencies.Length -gt 0) {
-    foreach ($missingPort in $missingDependencies) {
-        vcpkg/vcpkg.exe install $missingPort
+        vcpkg/vcpkg.exe install $port
     }
 }
 

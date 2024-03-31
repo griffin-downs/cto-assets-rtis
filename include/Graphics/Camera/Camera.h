@@ -233,7 +233,7 @@ public:
         }
         if (keyStates.aPressed)
         {
-            deltaVelocity.x -= 1.0f;
+            deltaVelocity.x += 1.0f;
         }
         if (keyStates.sPressed)
         {
@@ -241,7 +241,7 @@ public:
         }
         if (keyStates.dPressed)
         {
-            deltaVelocity.x += 1.0f;
+            deltaVelocity.x -= 1.0f;
         }
         if (keyStates.qPressed)
         {

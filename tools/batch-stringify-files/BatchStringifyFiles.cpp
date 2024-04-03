@@ -15,142 +15,26 @@
 #include <tuple>
 
 #include "AutomaticDurationString.h"
+#include "ArgumentBuffers.h"
 
 
 namespace ctoAssetsRTIS
 {
-template<AutomaticDurationString... ArgumentNames>
-class ArgumentBuffers
+void stringifyFile(
+    std::string_view inputFile,
+    std::string_view outputFile,
+    std::string_view typeName)
 {
-public:
-    template<AutomaticDurationString KeyName>
-    struct ArgumentBuffer
-    {
-        static constexpr auto keyName = KeyName.data;
-        std::string buffer;
-    };
-
-private:
-    std::tuple<ArgumentBuffer<ArgumentNames>...> argumentBuffers;
-
-public:
-    bool readInput()
-    {
-        static constexpr auto applyToEachConjunctive =
-        [](const auto& operation, auto& tuple)
-        {
-            const auto apply =
-            [&]<size_t... Indices>(std::index_sequence<Indices...>)
-            {
-                return (operation(std::get<Indices>(tuple)) && ...);
-            };
-
-            return apply(
-                std::make_index_sequence<
-                    std::tuple_size<
-                        typename std::decay<decltype(tuple)>::type
-                    >::value
-                >{});
-        };
-
-        static constexpr auto read =
-        [](auto& argumentBuffer)
-        {
-            if (std::getline(std::cin, argumentBuffer.buffer))
-            {
-                return true;
-            }
-
-            if (!std::cin.fail() || std::cin.eof())
-            {
-                return false;
-            }
-
-            throw std::runtime_error(
-                std::format(
-                    "Error: Failed to read input for parameter: {}",
-                    argumentBuffer.keyName));
-        };
-
-        return applyToEachConjunctive(read, this->argumentBuffers);
-    }
-
-    auto extractValues() const
-    {
-        static constexpr auto extractValue =
-        [](auto& argumentBuffer) -> const char*
-        {
-            auto& buffer = argumentBuffer.buffer;
-            const auto keyName = argumentBuffer.keyName;
-
-            if (!buffer.starts_with(keyName))
-            {
-                throw std::runtime_error(
-                    std::format(
-                        "Key '{}' not found in the buffer: {}",
-                        keyName,
-                        buffer));
-            }
-
-            const auto delimiter = "=";
-
-            const auto
-                delimiterLength = std::char_traits<char>::length(delimiter),
-                keyNameLength = std::char_traits<char>::length(keyName);
-
-            if ([&]
-            {
-                const auto remainingBuffer = buffer.substr(keyNameLength);
-                return !remainingBuffer.starts_with(delimiter);
-            }())
-            {
-                throw std::runtime_error(
-                    std::format(
-                        "Delimiter '{}' not found in the buffer: {}",
-                        delimiter,
-                        buffer));
-            }
-
-            const auto keyNameDelimiterLength =
-                keyNameLength + delimiterLength;
-
-            return buffer.data() + keyNameDelimiterLength;
-        };
-
-        const auto transform =
-        [&]<size_t... Indices>(std::index_sequence<Indices...>)
-        {
-            return
-                std::make_tuple(
-                    extractValue(
-                        std::get<Indices>(this->argumentBuffers))...);
-        };
-
-        return transform(
-            std::make_index_sequence<
-                std::tuple_size<decltype(this->argumentBuffers)>::value
-            >{});
-    }
-};
-
-template<typename T>
-concept IsConstCharPointer = std::is_same<T, const char*>::value;
-
-template<IsConstCharPointer... ArgumentTypes>
-void stringifyFile(std::tuple<ArgumentTypes...> arguments)
-{
-    auto [inputFilePath, outputFilePath, typeName] = arguments;
-
-    std::ifstream inFile;
-    std::ofstream outFile;
 
     try
     {
-        inFile.open(inputFilePath, std::ios::binary);
-        inFile.exceptions(std::ifstream::badbit);
+        auto inFile = std::ifstream();
+        inFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        inFile.open(inputFile.data());
 
-        outFile.open(outputFilePath, std::ios::binary);
-        outFile.exceptions(std::ofstream::badbit);
+        auto outFile = std::ofstream();
+        outFile.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+        outFile.open(outputFile.data());
 
         outFile
             << "#pragma once\n\n"
@@ -172,9 +56,7 @@ void stringifyFile(std::tuple<ArgumentTypes...> arguments)
                 static constexpr size_t maxLengthStringLiteral = 65536;
                 static_assert(
                     bufferSizeBytes + maxBatchSizeBytes
-                    <=
-                    maxLengthStringLiteral);
-
+                        <= maxLengthStringLiteral);
             }
 
             auto batchSizeBytes = size_t{};
@@ -222,37 +104,16 @@ void stringifyFile(std::tuple<ArgumentTypes...> arguments)
     }
     catch (const std::exception& e)
     {
-        static constexpr auto stringFormatTuple =
-        [](const auto& tuple)
-        {
-            const auto format =
-            [&]<size_t... Indices>(std::index_sequence<Indices...>)
-            {
-                std::ostringstream stream;
-
-                ((stream << "\n\t" << std::get<Indices>(tuple)), ...);
-
-                return stream.str();
-            };
-
-            return format(
-                std::make_index_sequence<
-                    std::tuple_size<
-                        typename std::decay<decltype(tuple)>::type
-                    >::value
-                >{});
-        };
-
-        static constexpr auto errorMessageTemplate =
-            "Error reading/writing files.\n"
-            "Arguments:{}\n"
-            "Exception details:\n\t{}";
-
-        throw std::runtime_error(
-            std::format(
-                errorMessageTemplate,
-                stringFormatTuple(arguments),
-                e.what()));
+        throw
+            std::runtime_error(
+                std::format(
+                    "Error reading/writing files.\n"
+                    "Arguments:\n\t{}\n\t{}\n\t{}\n"
+                    "Exception details:\n\t{}",
+                    inputFile,
+                    outputFile,
+                    typeName,
+                    e.what()));
     }
 }
 } // namespace ctoAssetsRTIS
@@ -270,9 +131,17 @@ int main()
                 "TYPE_NAME"_ads
             >{};
 
-        while (argumentBuffers.readInput())
+        while (argumentBuffers.readLines())
         {
-            stringifyFile(argumentBuffers.extractValues());
+            auto [
+                inputFile,
+                outputFile,
+                typeName
+            ] = argumentBuffers.getValueViews();
+
+            stringifyFile(inputFile, outputFile, typeName);
+
+            argumentBuffers.forward<"OUTPUT_FILE"_ads, "TYPE_NAME"_ads>();
         }
     }
     catch (const std::exception& e)

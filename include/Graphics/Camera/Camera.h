@@ -166,7 +166,6 @@ public:
 
             previousCurrentCursorPosition = mouseStates.currentCursorPosition;
 
-
             return isZeroVector(cursorPositionDelta);
         }();
 
@@ -267,10 +266,11 @@ public:
 
     auto getViewMatrix() const
     {
-        return glm::lookAt(
-            this->position,
-            this->position + this->getCameraForwardVector(),
-            this->orientation * getGlobalUpVector());
+        return
+            glm::lookAt(
+                this->position,
+                this->position + this->getCameraForwardVector(),
+                this->orientation * getGlobalUpVector());
     }
 
 private:

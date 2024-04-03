@@ -1,4 +1,7 @@
 {
-    "WebAssembly": [ "glm" ],
-    "Native": [ "glfw3", "glew", "glm" ]
+    "CTOAssetsRTIS": {
+        "WebAssembly": [ "glm" ],
+        "Native": [ "glfw3", "glew", "glm" ]
+    },
+    "Tools": [ "assimp" ]
 }

@@ -4,8 +4,8 @@
 # ==============================================================================
 
 
-set(TOOL_NAME BatchStringifyFiles)
-add_executable(${TOOL_NAME} BatchStringifyFiles.cpp)
+set(TOOL_NAME CompileAssetLibrary)
+add_executable(${TOOL_NAME} CompileAssetLibrary.cpp)
 
 target_compile_options(${TOOL_NAME}
     PRIVATE

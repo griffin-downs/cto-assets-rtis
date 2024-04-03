@@ -27,14 +27,13 @@ function(batch_stringify_files)
 
     file(WRITE "${arguments_file}" "")
     foreach(argument IN LISTS ${prefix}_ARGUMENT_SETS)
-        file(APPEND ${arguments_file} "${argument}\n")
+        file(APPEND "${arguments_file}" "${argument}\n")
         if(argument MATCHES "^OUTPUT_FILE=")
             string(REGEX REPLACE "^OUTPUT_FILE=" "" output_file ${argument})
             list(APPEND output_files ${output_file})
         endif()
     endforeach()
 
-    # message(FATAL_ERROR "${${prefix}_STRINGIFY_TOOL_PATH}")
     add_custom_command(
         OUTPUT ${output_files}
         COMMAND "${${prefix}_STRINGIFY_TOOL_PATH}" < "${arguments_file}"
@@ -44,17 +43,14 @@ function(batch_stringify_files)
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 
-    set(target_index 0)
     foreach(output_file IN LISTS output_files)
-        set(target_name batch_stringify_${target_index})
+        set(target_name batch_stringify_${output_file})
 
         add_custom_target(${target_name} ALL
-            DEPENDS ${output_file}
+            DEPENDS "${output_file}"
             COMMENT "CUSTOM TARGET FOR ${output_file}"
         )
 
         add_dependencies("${${prefix}_TARGET_NAME}" ${target_name})
-
-        math(EXPR target_index "${target_index} + 1")
     endforeach()
 endfunction()

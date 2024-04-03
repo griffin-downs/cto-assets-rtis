@@ -27,7 +27,7 @@ As of writing, the cto-assets-rtis website is roughly 195kb in size, one tenth t
 
 - C++: Utilizes advanced features and template metaprogramming for compile-time optimizations and asset processing.
 - WebAssembly (Wasm): Targets WebAssembly for running high-performance web applications.
-    Emscripten: Compiles C++ into Wasm, bridging the gap between high-level programming and web development.
+- Emscripten: Compiles C++ into Wasm, bridging the gap between high-level programming and web development.
 - Vcpkg: Package manager for library dependencies.
 - WebGL/OpenGL: For rendering 3D graphics in web browsers, leveraging GLM (OpenGL Mathematics) for graphics computations.
 - CMake: Employs an advanced build automation pipeline for efficient code generation and project compilation.
@@ -43,7 +43,7 @@ cto-assets-rtis is particularly beneficial for developers and organizations aimi
 
 ## Getting Started
 
-cto-assets-rtis primarily targets Emscripten (which utilizes the LLVM toolchain) and was developed under Windows. There are not guarantees that it will build under other development setups. That being said, it would be great to expand the build testing matrix in the future. In the meantime, if you would like to build the project:
+cto-assets-rtis primarily targets Emscripten (which utilizes the LLVM toolchain) and was developed under Windows. There are no guarantees that it will build under other development setups. That being said, it would be great to expand the build testing matrix in the future. In the meantime, if you would like to build the project:
 
 ```powershell
 

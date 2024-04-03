@@ -30,3 +30,44 @@ This agreement is governed by the laws of the United States of America.
 For inquiries, please contact: griffindowns@outlook.com.
 
 By using "cto-assets-rtis," you acknowledge that you have read this agreement, understand it, and agree to be bound by its terms and conditions.
+
+## Third-Party Licenses
+
+This project uses several open-source libraries and tools, each subject to its respective license terms. Full license texts for these libraries and tools are maintained in the `licenses` directory of this repository. Below is a summary of each dependency, its licensing terms, and how it is managed within the project:
+
+### Open Asset Import Library (Assimp)
+
+- **Managed via**: vcpkg
+- **License Summary**: Redistribution and use in source and binary forms, with or without modification, are permitted under specified conditions.
+- **Details**: Redistributions must follow the copyright notice, conditions, and disclaimer requirements.
+- **Full License**: See `licenses/LICENSE-ASSIMP.md`.
+
+### Emscripten
+
+- **Managed via**: Git submodules for direct inclusion in the project.
+- **License Summary**: Available under the MIT License, permitting personal, commercial, and non-commercial use.
+- **Full License**: See `licenses/LICENSE-EMSCRIPTEN.md`.
+
+### GLEW (OpenGL Extension Wrangler Library)
+
+- **Managed via**: vcpkg
+- **License Summary**: Licensed under multiple permissive licenses, including the Modified BSD License and the MIT License.
+- **Full License**: See `licenses/LICENSE-GLEW.md`.
+
+### GLM (OpenGL Mathematics)
+
+- **Managed via**: vcpkg
+- **License Summary**: Licensed under The Happy Bunny License (Modified MIT License) or the MIT License.
+- **Full License**: See `licenses/LICENSE-GLM.md`.
+
+### GLFW3
+
+- **Managed via**: vcpkg
+- **License Summary**: Licensed under the zlib/libpng license, allowing liberal use, modification, and distribution.
+- **Full License**: See `licenses/LICENSE-GLFW3.md`.
+
+### vcpkg (C++ Library Manager)
+
+- **Managed via**: Git submodules for direct inclusion in the project.
+- **License Summary**: vcpkg is distributed under the MIT License, which permits use, modification, and distribution.
+- **Full License**: See `licenses/LICENSE-VCPKG.md`.

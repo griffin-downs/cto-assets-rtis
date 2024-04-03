@@ -6,14 +6,18 @@
 
 include("${CMAKE_SOURCE_DIR}/cmake/GenerateHeaders.cmake")
 
-set(TARGET_NAME ${PROJECT_NAME})
+add_executable(${PROJECT_NAME} main.cpp)
 
-add_executable(${TARGET_NAME} main.cpp)
-
-generate_headers(
-    TARGET_NAME ${TARGET_NAME}
-    STRINGIFY_TOOL_TARGET_NAME ${BATCH_STRINGIFY_FILES_PROJECT}
-    STRINGIFY_TOOL_PATH "${BATCH_STRINGIFY_FILES_TOOL_PATH}"
+include("${CMAKE_SOURCE_DIR}/cmake/CompileAssets.cmake")
+compile_assets(
+    TARGET_NAME ${PROJECT_NAME}
+    INPUT_FILES
+        "${CMAKE_SOURCE_DIR}/assets/RubiksCube.obj"
+        # "${CMAKE_SOURCE_DIR}/assets/RubiksCube.mtl"
+    LINK_LIBRARIES_RESULT_VAR
+        GENERATED_ASSETS_LINK_LIBRARIES
+    INCLUDE_DIRECTORY_RESULT_VAR
+        GENERATED_ASSETS_INCLUDE_DIRECTORY
 )
 
 find_package(OpenGL REQUIRED)
@@ -51,13 +55,13 @@ if(EMSCRIPTEN)
 
     string(REPLACE ";" " " SPACE_DELIMITED_LINK_FLAGS "${TARGET_LINK_FLAGS}")
 
-    set_target_properties(${TARGET_NAME}
+    set_target_properties(${PROJECT_NAME}
         PROPERTIES
             SUFFIX ".js"
             LINK_FLAGS "${SPACE_DELIMITED_LINK_FLAGS}"
     )
 
-    target_compile_options(${TARGET_NAME}
+    target_compile_options(${PROJECT_NAME}
         PRIVATE
             -O3
             -fconstexpr-steps=4290000000
@@ -65,11 +69,11 @@ if(EMSCRIPTEN)
             -ferror-limit=0
     )
 
-    target_include_directories(${TARGET_NAME}
+    target_include_directories(${PROJECT_NAME}
         PRIVATE
             ${COMMON_INCLUDES}
     )
-    target_link_libraries(${TARGET_NAME}
+    target_link_libraries(${PROJECT_NAME}
         PRIVATE
             ${COMMON_LIBRARIES}
     )
@@ -82,7 +86,7 @@ if(EMSCRIPTEN)
     configure_file("${CMAKE_SOURCE_DIR}/assets/qr-code.svg"
         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qr-code.svg")
 else()
-    target_compile_options(${TARGET_NAME}
+    target_compile_options(${PROJECT_NAME}
         PRIVATE
             -Wall
             -Wextra
@@ -93,19 +97,19 @@ else()
     )
 
     if(CMAKE_BUILD_TYPE STREQUAL Release)
-        target_compile_options(${TARGET_NAME} PRIVATE -O3)
+        target_compile_options(${PROJECT_NAME} PRIVATE -O3)
     endif()
 
     find_package(glfw3 REQUIRED)
     find_package(GLEW REQUIRED)
 
-    target_include_directories(${TARGET_NAME}
+    target_include_directories(${PROJECT_NAME}
         PRIVATE
             OpenGL::GL
             GLEW::GLEW
             ${COMMON_INCLUDES}
     )
-    target_link_libraries(${TARGET_NAME}
+    target_link_libraries(${PROJECT_NAME}
         PRIVATE
             OpenGL::GL
             GLEW::GLEW

@@ -21,18 +21,18 @@ template<
     auto CreateFunction,
     auto DeleteFunction
 >
-class GLObject
+class GlObject
 {
 public:
     using Context = ContextType;
 
-    GLObject() { CreateFunction(1, &this->id); }
+    GlObject() { CreateFunction(1, &this->id); }
 
-    GLObject(const GLObject&) = delete;
-    GLObject(GLObject&&) = delete;
-    GLObject& operator=(const GLObject&) = delete;
+    GlObject(const GlObject&) = delete;
+    GlObject(GlObject&&) = delete;
+    GlObject& operator=(const GlObject&) = delete;
 
-    ~GLObject() { DeleteFunction(1, &this->id); }
+    ~GlObject() { DeleteFunction(1, &this->id); }
 
     auto bind() const { return Context(this->id); }
 
@@ -41,10 +41,10 @@ private:
 };
 
 template<typename TypeTag = void, GLenum EnumTag = 0>
-struct GetGLObject;
+struct GetGlObject;
 
 template<GLenum BufferType>
-struct GetGLObject<void, BufferType>
+struct GetGlObject<void, BufferType>
 {
     class Context
     {
@@ -68,17 +68,17 @@ struct GetGLObject<void, BufferType>
     };
 
     using Type =
-        GLObject<
+        GlObject<
             Context,
             [](GLsizei n, GLuint* id) { glGenBuffers(n, id); },
             [](GLsizei n, GLuint* id) { glDeleteBuffers(n, id); }
         >;
 };
 
-class GLVertexArray;
+class GlVertexArray;
 
 template<>
-struct GetGLObject<GLVertexArray>
+struct GetGlObject<GlVertexArray>
 {
     class Context
     {
@@ -112,19 +112,19 @@ struct GetGLObject<GLVertexArray>
     };
 
     using Type =
-        GLObject<
+        GlObject<
             Context,
             [](GLsizei n, GLuint* id) { glGenVertexArrays(n, id); },
             [](GLsizei n, GLuint* id) { glDeleteVertexArrays(n, id); }
         >;
 };
 
-class GLVertexArray
-    : public GetGLObject<GLVertexArray>::Type {};
+class GlVertexArray
+    : public GetGlObject<GlVertexArray>::Type {};
 
-class GLVertexBuffer
-    : public GetGLObject<void, GL_ARRAY_BUFFER>::Type {};
+class GlVertexBuffer
+    : public GetGlObject<void, GL_ARRAY_BUFFER>::Type {};
 
-class GLElementBuffer
-    : public GetGLObject<void, GL_ELEMENT_ARRAY_BUFFER>::Type {};
+class GlElementBuffer
+    : public GetGlObject<void, GL_ELEMENT_ARRAY_BUFFER>::Type {};
 } // namespace ctoAssetsRTIS

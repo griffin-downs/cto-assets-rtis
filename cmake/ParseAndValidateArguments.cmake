@@ -47,7 +47,8 @@ function(parse_and_validate_arguments)
         if(NOT DEFINED ${_PARSE_ARGS_PREFIX}_${argument})
             message(
                 FATAL_ERROR
-                "Mandatory argument '${argument}' not provided.")
+                "Mandatory argument '${argument}' not provided."
+            )
         endif()
     endforeach()
 

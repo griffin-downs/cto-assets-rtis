@@ -16,6 +16,7 @@
 #include "Serialization/ParseStructuredSequentialData.h"
 #include "Vertex.h"
 
+
 namespace ctoAssetsRTIS
 {
 struct MeshData
@@ -175,7 +176,7 @@ public:
 
         auto result =
             std::array<
-                unsigned int,
+                unsigned,
                 facesArraySize * faceSize
             >{};
 
@@ -216,7 +217,6 @@ public:
                                 useMaterialDirectives.id)...);
                 },
                 useMaterialDirectives);
-
 
         [&]<size_t... Indices>(std::index_sequence<Indices...>)
         {

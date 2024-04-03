@@ -8,7 +8,7 @@
 
 #include <span>
 
-#include "Graphics/Rendering/GLObject.h"
+#include "Graphics/Rendering/GlObject.h"
 #include "MeshData.h"
 
 namespace ctoAssetsRTIS
@@ -37,9 +37,9 @@ public:
     class Context
     {
     private:
-        const GLVertexArray::Context vaoContext;
-        const GLVertexBuffer::Context vboContext;
-        const GLElementBuffer::Context eboContext;
+        const GlVertexArray::Context vaoContext;
+        const GlVertexBuffer::Context vboContext;
+        const GlElementBuffer::Context eboContext;
 
     public:
         Context(const Context&) = delete;
@@ -59,9 +59,9 @@ public:
     const std::span<const MeshData::MaterialChunk> materialChunks;
 
 private:
-    const GLVertexArray vertexArray;
-    const GLVertexBuffer vertexBuffer;
-    const GLElementBuffer elementBuffer;
+    const GlVertexArray vertexArray;
+    const GlVertexBuffer vertexBuffer;
+    const GlElementBuffer elementBuffer;
 
     friend class Context;
 };

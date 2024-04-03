@@ -4,13 +4,12 @@
 // =============================================================================
 
 
+#include <functional>
 #include <iostream>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
-
-#include <functional>
 
 #include "Window/WindowSystem.h"
 
@@ -28,16 +27,32 @@
 
 namespace ctoAssetsRTIS
 {
-struct MainLoop
+class MainLoop
 {
+public:
+    template<auto NativeLoopPredicate>
     struct Configuration
     {
-        const InputSystem& inputSystem;
-        std::function<void()> logic;
+        static constexpr auto nativeLoopPredicate = NativeLoopPredicate;
     };
-    void operator()(Configuration configuration)
+#ifndef __EMSCRIPTEN__
+    MainLoop(Configuration configuration)
+    : nativeLoopPredicate(configuration.nativeLoopPredicate)
     {
-        auto& [inputSystem, logic] = configuration;
+    }
+#else
+    MainLoop(Configuration)
+    {
+    }
+#endif
+
+    struct Parameters
+    {
+        std::function<void()> loopLogic;
+    };
+    void operator()(Parameters arguments)
+    {
+        auto& logic = arguments.logic;
 
 #ifndef __EMSCRIPTEN__
         while (!inputSystem.isExitRequested())
@@ -77,6 +92,10 @@ struct MainLoop
             1);
 #endif
     }
+private:
+#ifndef __EMSCRIPTEN__
+    std::function<bool()> nativeLoopPredicate;
+#endif
 };
 } // namespace ctoAssetsRTIS
 
@@ -140,9 +159,10 @@ int main()
 
         auto timer = FixedRateTimer<float>({ .targetFPS = 60.0f });
 
-        MainLoop{}({
-            .inputSystem = inputSystem,
-            .logic =
+        MainLoop({
+            .nativeLoopPredicate = [&]{ return !inputSystem.isExitRequested(); }
+        })({
+            .loopLogic =
             [&]
             {
                 timer.startFrame();

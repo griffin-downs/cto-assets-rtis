@@ -299,7 +299,7 @@ namespace WavefrontObjSchema
     using Vertex = std::array<float, 3>;
 
     template<typename...>
-    using Face = std::array<unsigned int, 3>;
+    using Face = std::array<unsigned, 3>;
 
     template<typename IdString, typename Faces>
     struct UseMaterialDirective

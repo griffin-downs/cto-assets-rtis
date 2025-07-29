@@ -10,7 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "Input/InputStates.h"
+#include "input/InputStates.h"
 
 
 namespace ctoAssetsRTIS
@@ -105,12 +105,19 @@ public:
     {
         const auto dt = arguments.dt;
 
-        const auto& inputStates = arguments.inputStates;
-        this->processMouseInput(
-            inputStates.mouseStates,
-            arguments.viewportDimensions,
-            dt);
-        this->processKeyInput(inputStates.keyStates, dt);
+        {
+            const auto& [
+                mouseStates,
+                keyStates
+            ] = arguments.inputStates;
+
+            this->processMouseInput(
+                mouseStates,
+                arguments.viewportDimensions,
+                dt);
+
+            this->processKeyInput(keyStates, dt);
+        }
 
         if (!isZeroVector(this->velocity))
         {

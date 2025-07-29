@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "Materials/MaterialLibrary.h"
-#include "Mesh/Mesh.h"
+#include "materials/MaterialLibrary.h"
+#include "mesh/Mesh.h"
 
 namespace ctoAssetsRTIS
 {

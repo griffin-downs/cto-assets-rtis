@@ -9,7 +9,7 @@ This file is part of cto-assets-rtis. See LICENSE.md for details.
 
 <head>
     <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1.0, user-scalable=no">
-    <title>@TARGET_NAME@</title>
+    <title>@PROJECT_NAME@</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body, html {
@@ -117,12 +117,12 @@ This file is part of cto-assets-rtis. See LICENSE.md for details.
             })()
         };
     </script>
-    <script async src="@TARGET_NAME@.js"></script>
+    <script async src="@PROJECT_NAME@.js"></script>
 
     <div class="button-container">
         <button id="qrButton" class="icon-button"><i class="fas fa-qrcode"></i></button>
 
-        <a href="https://github.com/griffin-downs/@TARGET_NAME@" target="_blank" class="icon-button">
+        <a href="https://github.com/griffin-downs/@PROJECT_NAME@" target="_blank" class="icon-button">
             <i class="fab fa-github"></i>
         </a>
     </div>

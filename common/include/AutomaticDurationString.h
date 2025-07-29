@@ -38,7 +38,8 @@ struct AutomaticDurationString
 };
 
 template<size_t... Ns>
-constexpr auto makeAutomaticDurationString(const char (&...strings)[Ns]) {
+constexpr auto makeAutomaticDurationString(const char (&...strings)[Ns])
+{
     constexpr size_t totalSize = (... + (sizeof(strings) - 1)) + 1;
     auto buffer = std::array<char, totalSize>{};
 

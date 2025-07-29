@@ -40,11 +40,12 @@ private:
         }
         else
         {
-            return accumulateOffset<
-                Result + (First::elementCount * First::elementSize),
-                Index - 1,
-                Rest...
-            >();
+            return
+                accumulateOffset<
+                    Result + (First::elementCount * First::elementSize),
+                    Index - 1,
+                    Rest...
+                >();
         }
     }
 
@@ -86,7 +87,8 @@ public:
     static constexpr auto elementCount = (Traits::elementCount + ...);
     std::array<GLfloat, elementCount> data;
 
-    constexpr Vertex(const Traits&... traits) : data{}
+    constexpr Vertex(const Traits&... traits)
+    : data{}
     {
         auto offset = this->data.begin();
         ((offset =
@@ -97,7 +99,10 @@ public:
             ...);
     }
 
-    constexpr Vertex(): data{} {}
+    constexpr Vertex()
+    : data{}
+    {
+    }
 
     constexpr const std::array<GLfloat, elementCount>& getData() const
     {
@@ -145,17 +150,12 @@ struct VertexTrait
     {
     }
 
-    constexpr const std::array<GLfloat, ElementCount>& getData() const
+    constexpr const auto& getData() const
     {
         return this->data;
     }
 };
 
-struct ColorRGBA : public VertexTrait<4> {};
 struct Position : public VertexTrait<3> {};
-
-struct VertexPositionRGBA : public Vertex<Position, ColorRGBA>
-{
-    using Vertex<Position, ColorRGBA>::Vertex;
-};
+struct Normal : public VertexTrait<3> {};
 } // namespace ctoAssetsRTIS

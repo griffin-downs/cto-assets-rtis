@@ -29,10 +29,15 @@ struct CTOMesh
         std::optional<std::array<unsigned, 3>> textureIndices;
     };
 
+    struct MaterialDirective
+    {
+        std::string name;
+        std::vector<Face> faces;
+    };
+
     std::string name;
-    std::string materialName;
 
     std::vector<Vertex> vertices;
-    std::vector<Face> faces;
+    std::vector<MaterialDirective> materialDirectives;
 };
 } // namespace ctoAssetsRTIS

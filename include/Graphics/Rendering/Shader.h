@@ -131,14 +131,14 @@ public:
 #ifdef DEBUG
                 glGetProgramInfoLog(
                     shaderProgramId,
-                    logbuffer.size(),
+                    logBuffer.size(),
                     nullptr,
                     logBuffer.data());
 
                 throw std::runtime_error(
                     std::format(
-                        "Shader compiler error.\nLog:\n{}"),
-                        logBuffer.data());
+                        "Shader compiler error.\nLog:\n{}",
+                        logBuffer.data()));
 #endif
             };
             checkCompilation();

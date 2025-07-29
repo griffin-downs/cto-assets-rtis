@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Window/ViewportDimensions.h"
+#include "window/ViewportDimensions.h"
 
 
 namespace ctoAssetsRTIS

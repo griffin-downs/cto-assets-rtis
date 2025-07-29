@@ -17,20 +17,20 @@
 #include "ArgumentBuffers.h"
 #include "AutomaticDurationString.h"
 #include "factories/MakeCTOMaterialLibrary.h"
-#include "factories/MakeCTOMeshes.h"
+#include "factories/MakeCTOMesh.h"
 #include "formatting/FormatCTOMaterialLibrary.h"
 #include "formatting/FormatCTOMesh.h"
 
 namespace ctoAssetsRTIS
 {
+namespace fs = std::filesystem;
+
 template<typename T>
 struct File
 {
     std::string name;
     T contents;
 };
-
-namespace fs = std::filesystem;
 
 struct GenerateAssetFiles
 {
@@ -46,15 +46,17 @@ struct GenerateAssetFiles
 
     auto operator()(fs::path inputFile) const
     {
-        const auto& scene =
+        auto importer = Assimp::Importer();
+
+        const auto* scene =
         [&]
         {
             const auto inputFileString = inputFile.generic_string();
-            static auto importer = Assimp::Importer();
+
             static constexpr auto importFlags =
                 aiProcessPreset_TargetRealtime_MaxQuality;
 
-            const auto scene =
+            const auto* scene =
                 importer.ReadFile(inputFileString.data(), importFlags);
 
             const auto assertScene =
@@ -89,28 +91,28 @@ struct GenerateAssetFiles
                             importer.GetErrorString()));
             }
 
-            return *scene;
+            return scene;
         }();
 
         const auto outputFile = outputDirectory / inputFile.filename();
 
         return
             std::make_tuple(
-                File<std::vector<CTOMesh>>
+                File
                 {
                     .name =
                         fs::path(outputFile)
                             .replace_extension(".cto.obj")
                             .generic_string(),
-                    .contents = makeCTOMeshes(scene)
+                    .contents = makeCTOMesh(*scene)
                 },
-                File<CTOMaterialLibrary>
+                File
                 {
                     .name =
                         fs::path(outputFile)
                             .replace_extension(".cto.mtl")
                             .generic_string(),
-                    .contents = makeCTOMaterialLibrary(scene)
+                    .contents = makeCTOMaterialLibrary(*scene)
                 }
                 // File
                 // {
@@ -142,36 +144,25 @@ int main()
 
     try
     {
-        auto outputDirectory =
-        [&]
-        {
-            auto codeGenerationRootDirectory =
-            []
-            {
-                auto argumentBuffer =
-                    ArgumentBuffer<"CODE_GENERATION_ROOT_DIRECTORY"_ads>{};
-
-                if (!argumentBuffer.readLine())
+        const auto generateAssetFiles =
+            GenerateAssetFiles({
+                .outputDirectory =
+                []
                 {
-                    throw
-                        std::invalid_argument(
-                            std::format(
-                                "Failed to read argument: {}",
-                                argumentBuffer.keyView));
-                }
+                    auto argumentBuffer =
+                        ArgumentBuffer<"OUTPUT_DIRECTORY"_ads>{};
 
-                return fs::path(argumentBuffer.getValueView());
-            }();
+                    argumentBuffer.readLine();
 
-            return codeGenerationRootDirectory / "include";
-        }();
+                    argumentBuffer.forward();
+
+                    return fs::path(argumentBuffer.getValueView());
+                }()
+            });
 
         auto inputFileBuffer = ArgumentBuffer<"INPUT_FILE"_ads>{};
         auto outFile = std::ofstream();
         outFile.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-
-        const auto generateAssetFiles =
-            GenerateAssetFiles({ .outputDirectory = outputDirectory });
 
         while (inputFileBuffer.readLine())
         {
@@ -190,7 +181,9 @@ int main()
 
                     outFile.close();
 
-                    std::cout << "OUTPUT_FILE=" << file.name << std::endl;
+                    std::cout
+                        << std::format("INPUT_FILE={}", file.name)
+                        << std::endl;
                 };
 
                 (processFile(std::get<Indices>(assetFiles)), ...);

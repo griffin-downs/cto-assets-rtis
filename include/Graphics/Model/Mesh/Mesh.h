@@ -8,7 +8,7 @@
 
 #include <span>
 
-#include "Graphics/Rendering/GlObject.h"
+#include "graphics/rendering/GlObject.h"
 #include "MeshData.h"
 
 namespace ctoAssetsRTIS

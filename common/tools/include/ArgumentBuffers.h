@@ -20,10 +20,9 @@ class ArgumentBuffer
 {
 public:
     static constexpr auto keyView = Key.toStringView();
-
-private:
     static constexpr auto delimiter = "=";
 
+private:
     static constexpr auto keyDelimiterLength =
     []
     {
@@ -64,6 +63,11 @@ public:
         return this->buffer;
     }
 
+    void forward() const
+    {
+        std::cout << this->buffer << '\n';
+    }
+
 private:
     std::string buffer;
 
@@ -84,6 +88,13 @@ private:
                 this->buffer));
     }
 };
+
+// template<auto From, auto To>
+// struct Mapping
+// {
+//     static constexpr auto from = From;
+//     static constexpr auto to = To;
+// };
 
 template<AutomaticDurationString... ArgumentNames>
 class ArgumentBuffers
@@ -108,6 +119,19 @@ public:
 
         std::cout << std::endl;
     }
+
+    // template<Mapping... Mappings>
+    // void forwardAs() const
+    // {
+    //     constexpr auto delimiter = std::get<0>(this->argumentBuffers).delimiter;
+
+    //     ((std::cout
+    //         << Mappings::To.toStringView() << delimiter
+    //         << getArgumentBuffer<Mappings::From>().getValueView()
+    //         << '\n'), ...);
+
+    //     std::cout << std::endl;
+    // }
 
     auto readLines()
     {

@@ -13,8 +13,7 @@ function(compile_assets)
         PREFIX ${prefix}
         SINGLE_VALUE_PARAMETERS
             TARGET_NAME
-            LINK_LIBRARIES_RESULT_VAR
-            INCLUDE_DIRECTORY_RESULT_VAR
+            OUTPUT_DIRECTORY
         MULTI_VALUE_PARAMETERS
             INPUT_FILES
         ARGN ${ARGN}
@@ -32,25 +31,30 @@ function(compile_assets)
     set(batch_stringify_files
         "${TOOLS_BINARY_DIRECTORY}/BatchStringifyFiles${exe}"
     )
-    set(compile_asset_library
-        "${TOOLS_BINARY_DIRECTORY}/CompileAssetLibrary${exe}"
-    )
+    # set(compile_asset_library
+    #     "${TOOLS_BINARY_DIRECTORY}/CompileAssetLibrary${exe}"
+    # )
 
-    set(code_generation_root_directory "${CMAKE_BINARY_DIR}/generated")
     set(arguments_file "${CMAKE_BINARY_DIR}/GenerateAssetDataArguments.txt")
     file(WRITE "${arguments_file}"
-        "CODE_GENERATION_ROOT_DIRECTORY=${code_generation_root_directory}\n"
+        "OUTPUT_DIRECTORY=${${prefix}_OUTPUT_DIRECTORY}\n"
     )
     foreach(input_file IN LISTS ${prefix}_INPUT_FILES)
         file(APPEND "${arguments_file}" "INPUT_FILE=${input_file}\n")
     endforeach()
 
-    set(output_file "${CMAKE_BINARY_DIR}/CompileAssetLibraryOutput.txt")
+    set(generate_asset_data_output
+        "${CMAKE_BINARY_DIR}/GenerateAssetDataOutput.txt"
+    )
+    set(output_file "${CMAKE_BINARY_DIR}/CompileAssetOutput.txt")
 
     add_custom_command(
-        OUTPUT ${output_file}
+        OUTPUT "${output_file}"
         COMMAND
             "${generate_asset_data}" < "${arguments_file}"
+                > "${generate_asset_data_output}"
+        COMMAND
+            "${batch_stringify_files}" < "${generate_asset_data_output}"
                 > "${output_file}"
         DEPENDS "${arguments_file}"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

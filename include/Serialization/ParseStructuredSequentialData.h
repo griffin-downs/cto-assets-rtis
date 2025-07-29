@@ -296,7 +296,7 @@ public:
 namespace WavefrontObjSchema
 {
     template<typename...>
-    using Vertex = std::array<float, 3>;
+    using VertexPositionNormal = std::array<float, 6>;
 
     template<typename...>
     using Face = std::array<unsigned, 3>;
@@ -324,7 +324,7 @@ namespace WavefrontObjSchema
         Rule<
             Sequence<"o"_ads>,
             Object,
-            Rule<Sequence<"v"_ads>, Vertex>,
+            Rule<Sequence<"vpn"_ads>, VertexPositionNormal>,
             Rule<
                 Sequence<"usemtl"_ads>,
                 UseMaterialDirective,

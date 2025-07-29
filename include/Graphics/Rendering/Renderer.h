@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "FragmentShader.h"
+#include "FragmentShader.glsl.h"
+#include "VertexShader.glsl.h"
+#include "simulation/FixedRateTimer.h"
+#include "simulation/SimulationObject.h"
 #include "Shader.h"
-#include "Simulation/FixedRateTimer.h"
-#include "Simulation/SimulationObject.h"
-#include "VertexShader.h"
 
 
 namespace ctoAssetsRTIS
@@ -87,8 +87,8 @@ private:
         Shader(
             Shader::SourcePaths
             {
-                .vertex = fileContents::VertexShaderCode::value.data,
-                .fragment = fileContents::FragmentShaderCode::value.data
+                .vertex = fileContents::VertexShaderGlsl::value.data,
+                .fragment = fileContents::FragmentShaderGlsl::value.data
             });
 
     Camera& camera;

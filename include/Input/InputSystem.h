@@ -10,7 +10,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "Graphics/Camera/Camera.h"
+#include "graphics/camera/Camera.h"
 #include "InputStates.h"
 
 namespace ctoAssetsRTIS
@@ -52,6 +52,11 @@ public:
     bool isExitRequested() const
     {
         return glfwWindowShouldClose(this->window.get());
+    }
+#else
+    bool isExitRequested() const
+    {
+        return false;
     }
 #endif
 

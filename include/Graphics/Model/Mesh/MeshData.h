@@ -12,8 +12,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "Serialization/Deserialize.h"
-#include "Serialization/ParseStructuredSequentialData.h"
+#include "serialization/Deserialize.h"
+#include "serialization/ParseStructuredSequentialData.h"
 #include "Vertex.h"
 
 
@@ -132,7 +132,7 @@ private:
     }
 
 public:
-    using VertexType = Vertex<Position>;
+    using VertexType = Vertex<Position, Normal>;
     static constexpr auto vertices =
     []
     {
@@ -148,6 +148,11 @@ public:
                                 vertex[0],
                                 vertex[1],
                                 vertex[2]
+                            }),
+                            Normal({
+                                vertex[3],
+                                vertex[4],
+                                vertex[5]
                             }));
                 }));
     }();
@@ -160,11 +165,6 @@ public:
                 extractFaces(),
                 [](auto face)
                 {
-                    for (auto vertexIndex : face)
-                    {
-                        vertexIndex--;
-                    }
-
                     return face;
                 });
 
@@ -185,9 +185,9 @@ public:
             const auto& face = facesArray[i];
             const auto offset = i * faceSize;
 
-            result[offset] = face[0] - 1;
-            result[offset + 1] = face[1] - 1;
-            result[offset + 2] = face[2] - 1;
+            result[offset] = face[0];
+            result[offset + 1] = face[1];
+            result[offset + 2] = face[2];
         }
 
         return result;

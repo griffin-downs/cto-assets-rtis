@@ -4,20 +4,30 @@
 # ==============================================================================
 
 
-include("${CMAKE_SOURCE_DIR}/cmake/GenerateHeaders.cmake")
+# include("${CMAKE_SOURCE_DIR}/cmake/GenerateHeaders.cmake")
 
 add_executable(${PROJECT_NAME} main.cpp)
 
 include("${CMAKE_SOURCE_DIR}/cmake/CompileAssets.cmake")
+set(COMPILED_ASSETS_INCLUDE_DIRECTORY "${CMAKE_BINARY_DIR}/compiled-assets")
 compile_assets(
     TARGET_NAME ${PROJECT_NAME}
     INPUT_FILES
         "${CMAKE_SOURCE_DIR}/assets/RubiksCube.obj"
-        # "${CMAKE_SOURCE_DIR}/assets/RubiksCube.mtl"
-    LINK_LIBRARIES_RESULT_VAR
-        GENERATED_ASSETS_LINK_LIBRARIES
-    INCLUDE_DIRECTORY_RESULT_VAR
-        GENERATED_ASSETS_INCLUDE_DIRECTORY
+    OUTPUT_DIRECTORY
+        "${COMPILED_ASSETS_INCLUDE_DIRECTORY}"
+)
+
+set(STRINGIFIED_SHADERS_INCLUDE_DIRECTORY
+    "${CMAKE_BINARY_DIR}/stringified-shaders"
+)
+batch_stringify_files(
+    TARGET_NAME ${PROJECT_NAME}
+    INPUT_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/FragmentShader.glsl"
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/VertexShader.glsl"
+    OUTPUT_DIRECTORY
+        "${STRINGIFIED_SHADERS_INCLUDE_DIRECTORY}"
 )
 
 find_package(OpenGL REQUIRED)
@@ -26,7 +36,8 @@ find_package(glm REQUIRED)
 set(COMMON_INCLUDES
     glfw
     glm
-    "${CMAKE_BINARY_DIR}/include"
+    "${COMPILED_ASSETS_INCLUDE_DIRECTORY}"
+    "${STRINGIFIED_SHADERS_INCLUDE_DIRECTORY}"
     "${CMAKE_SOURCE_DIR}/common/include"
     "${CMAKE_SOURCE_DIR}/include"
     ${COMMON_INCLUDE_DIRECTORY}

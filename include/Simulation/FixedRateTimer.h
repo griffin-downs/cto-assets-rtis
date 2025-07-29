@@ -55,7 +55,7 @@ public:
             throw std::invalid_argument("targetFPS must be greater than 0");
         }
 
-        return Duration(T{1000.0} / configuration.targetFPS);
+        return Duration(T{ 1000.0 } / configuration.targetFPS);
     }())
     , dt(this->targetFrameDuration.count())
     {

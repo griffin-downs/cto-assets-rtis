@@ -6,6 +6,7 @@
 
 #include <array>
 #include <exception>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -20,44 +21,100 @@
 
 namespace ctoAssetsRTIS
 {
-void stringifyFile(
-    std::string_view inputFile,
-    std::string_view outputFile,
-    std::string_view typeName)
+namespace fs = std::filesystem;
+
+class StringifyFiles
 {
-
-    try
+public:
+    struct Configuration
     {
-        auto inFile = std::ifstream();
-        inFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        inFile.open(inputFile.data());
+        fs::path outputDirectory;
+    };
+    StringifyFiles(Configuration configuration)
+    : outputDirectory{ configuration.outputDirectory }
+    {
+        fs::create_directories(this->outputDirectory);
+    }
 
-        auto outFile = std::ofstream();
-        outFile.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-        outFile.open(outputFile.data());
+private:
+    static auto toCamelCase(std::string_view input)
+    {
+        auto result = std::string{};
+        result.reserve(input.size());
 
-        outFile
-            << "#pragma once\n\n"
-            << "#include \"AutomaticDurationString.h\"\n\n"
-            << "namespace ctoAssetsRTIS\n"
-            << "{\n"
-            << "namespace fileContents\n"
-            << "{\n"
-            << "struct " << typeName << "\n"
-            << "{\n"
-            << "    static constexpr auto value =\n"
-            << "        makeAutomaticDurationString(R\"DELIMITER(";
+        auto capitalizeNext = true;
 
+        for (auto c : input)
         {
-            static constexpr auto bufferSizeBytes = size_t{ 8 * 1024 };
-            static auto buffer = std::array<char, bufferSizeBytes>{};
-            static constexpr auto maxBatchSizeBytes = size_t{ 50000 };
+            if (c == '_' || c == '-' || c == '.')
             {
-                static constexpr size_t maxLengthStringLiteral = 65536;
+                capitalizeNext = true;
+            }
+            else
+            {
+                result += capitalizeNext
+                    ? static_cast<char>(
+                        std::toupper(static_cast<unsigned char>(c)))
+                    : c;
+                capitalizeNext = false;
+            }
+        }
+
+        return result;
+    }
+
+    static auto makeIdentifier(fs::path filePath)
+    {
+        filePath = filePath.filename();
+        return toCamelCase(filePath.string());
+    }
+
+public:
+    void operator()(fs::path inputFile)
+    {
+        const auto typeName = StringifyFiles::makeIdentifier(inputFile);
+
+        try
+        {
+            const auto inputFileString = inputFile.c_str();
+
+            auto inFile = std::ifstream();
+            inFile.exceptions(std::ifstream::badbit);
+            inFile.open(inputFileString);
+            
+            auto outFile = std::ofstream();
+            outFile.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+            outFile.open(
+                (this->outputDirectory / inputFile.filename()).string() + ".h");
+
+            outFile
+                << "#pragma once\n\n"
+                << "#include \"AutomaticDurationString.h\"\n\n"
+                << "namespace ctoAssetsRTIS\n"
+                << "{\n"
+                << "namespace fileContents\n"
+                << "{\n"
+                << "struct " << typeName << "\n"
+                << "{\n"
+                << "    static constexpr auto value =\n"
+                << "        makeAutomaticDurationString(R\"DELIMITER(";
+
+            static constexpr auto maxBatchSizeBytes = size_t{ 50000 };
+            static auto buffer =
+            [&]
+            {
+                static constexpr auto bufferSizeBytes =
+                    size_t{ 8 * 1024 };
+
+                static constexpr auto maxLengthStringLiteral =
+                    size_t{ 65536 };
+
                 static_assert(
                     bufferSizeBytes + maxBatchSizeBytes
                         <= maxLengthStringLiteral);
-            }
+
+                return std::array<char, bufferSizeBytes>{};
+            }();
 
             auto batchSizeBytes = size_t{};
             auto batchReadAndWrite =
@@ -66,56 +123,62 @@ void stringifyFile(
                 inFile.read(buffer.data(), buffer.size());
 
                 const auto bytesRead = inFile.gcount();
-                if (bytesRead > 0)
-                {
-                    outFile.write(buffer.data(), bytesRead);
-                }
-
-                if (inFile.eof())
+                if (bytesRead <= 0)
                 {
                     return false;
                 }
 
-                if (!inFile.good())
+                outFile.write(buffer.data(), bytesRead);
+                if (outFile.bad())
                 {
-                    throw std::runtime_error("Error while reading the file.");
+                    throw
+                        std::runtime_error(
+                            "Error while writing to the file.");
                 }
 
-                batchSizeBytes += bytesRead;
-                if (batchSizeBytes > maxBatchSizeBytes)
+                const auto sizeTBytesRead = static_cast<size_t>(bytesRead);
+                if (batchSizeBytes + sizeTBytesRead > maxBatchSizeBytes)
                 {
                     outFile
                         << ")DELIMITER\",\n"
-                        << "        R\"DELIMITER(";
+                        << "R\"DELIMITER(";
 
                     batchSizeBytes = 0;
                 }
 
+                if (!inFile.eof() && !inFile.good())
+                {
+                    throw std::runtime_error("Error while reading the file.");
+                }
+
+                batchSizeBytes += sizeTBytesRead;
+
                 return true;
             };
             while (batchReadAndWrite());
-        }
 
-        outFile
-            << ")DELIMITER\");\n"
-            << "};\n"
-            << "} // namespace fileContents\n"
-            << "} // namespace ctoAssetsRTIS\n";
+            outFile
+                << ")DELIMITER\");\n"
+                << "};\n"
+                << "} // namespace fileContents\n"
+                << "} // namespace ctoAssetsRTIS\n";
+        }
+        catch (const std::exception& e)
+        {
+            throw
+                std::runtime_error(
+                    std::format(
+                        "Error reading/writing files.\n"
+                        "Input file:\n\t{}\n"
+                        "Exception details:\n\t{}",
+                        inputFile.string().data(),
+                        e.what()));
+        }
     }
-    catch (const std::exception& e)
-    {
-        throw
-            std::runtime_error(
-                std::format(
-                    "Error reading/writing files.\n"
-                    "Arguments:\n\t{}\n\t{}\n\t{}\n"
-                    "Exception details:\n\t{}",
-                    inputFile,
-                    outputFile,
-                    typeName,
-                    e.what()));
-    }
-}
+
+private:
+    fs::path outputDirectory;
+};
 } // namespace ctoAssetsRTIS
 
 int main()
@@ -124,24 +187,26 @@ int main()
 
     try
     {
-        auto argumentBuffers =
-            ArgumentBuffers<
-                "INPUT_FILE"_ads,
-                "OUTPUT_FILE"_ads,
-                "TYPE_NAME"_ads
-            >{};
+        auto stringifyFiles =
+            StringifyFiles({
+                .outputDirectory =
+                []
+                {
+                    auto argumentBuffer =
+                        ArgumentBuffer<"OUTPUT_DIRECTORY"_ads>{};
 
-        while (argumentBuffers.readLines())
+                    argumentBuffer.readLine();
+
+                    return fs::path(argumentBuffer.getValueView());
+                }()
+            });
+
+        auto inputFileBuffer = ArgumentBuffer<"INPUT_FILE"_ads>{};
+        while (inputFileBuffer.readLine())
         {
-            auto [
-                inputFile,
-                outputFile,
-                typeName
-            ] = argumentBuffers.getValueViews();
+            stringifyFiles({ inputFileBuffer.getValueView() });
 
-            stringifyFile(inputFile, outputFile, typeName);
-
-            argumentBuffers.forward<"OUTPUT_FILE"_ads, "TYPE_NAME"_ads>();
+            inputFileBuffer.forward();
         }
     }
     catch (const std::exception& e)

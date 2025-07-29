@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Graphics/Model/Model.h"
+#include "graphics/model/Model.h"
 #include "Transform.h"
 
 

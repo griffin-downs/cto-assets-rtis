@@ -41,10 +41,11 @@ public:
             &width,
             &height);
 
-        return ViewportDimensions({
-            .width = (int)width,
-            .height = (int)height
-        });
+        return
+            ViewportDimensions({
+                .width = (int)width,
+                .height = (int)height
+            });
     }
 #endif
 

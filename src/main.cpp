@@ -3,6 +3,7 @@
 // This file is part of cto-assets-rtis. See LICENSE.md for details.
 // =============================================================================
 
+#define DEBUG
 
 #include <functional>
 #include <iostream>
@@ -11,18 +12,18 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#include "Window/WindowSystem.h"
+#include "window/WindowSystem.h"
 
-#include "RubiksCubeMtl.h"
-#include "RubiksCubeObj.h"
-#include "Graphics/Camera/Camera.h"
-#include "Graphics/Model/Mesh/Mesh.h"
-#include "Graphics/Model/Model.h"
-#include "Graphics/Rendering/Renderer.h"
-#include "Graphics/Rendering/ProjectionMatrixManager.h"
-#include "Input/InputSystem.h"
-#include "Simulation/FixedRateTimer.h"
-#include "Simulation/SimulationObject.h"
+#include "RubiksCube.cto.mtl.h"
+#include "RubiksCube.cto.obj.h"
+#include "graphics/camera/Camera.h"
+#include "graphics/model/mesh/Mesh.h"
+#include "graphics/model/Model.h"
+#include "graphics/rendering/Renderer.h"
+#include "graphics/rendering/ProjectionMatrixManager.h"
+#include "input/InputSystem.h"
+#include "simulation/FixedRateTimer.h"
+#include "simulation/SimulationObject.h"
 
 
 namespace ctoAssetsRTIS
@@ -30,10 +31,9 @@ namespace ctoAssetsRTIS
 class MainLoop
 {
 public:
-    template<auto NativeLoopPredicate>
     struct Configuration
     {
-        static constexpr auto nativeLoopPredicate = NativeLoopPredicate;
+        std::function<bool()> nativeLoopPredicate;
     };
 #ifndef __EMSCRIPTEN__
     MainLoop(Configuration configuration)
@@ -52,10 +52,10 @@ public:
     };
     void operator()(Parameters arguments)
     {
-        auto& logic = arguments.logic;
+        auto& logic = arguments.loopLogic;
 
 #ifndef __EMSCRIPTEN__
-        while (!inputSystem.isExitRequested())
+        while (this->nativeLoopPredicate())
         {
             logic();
         }
@@ -103,6 +103,8 @@ int main()
 {
     using namespace ctoAssetsRTIS;
 
+    std::cout << "Hello!\n";
+
     try
     {
         auto projectionMatrixManager = ProjectionMatrixManager();
@@ -138,9 +140,16 @@ int main()
         const auto rubiksCubeModel =
             Model
             {
-                .mesh = deserialize<Mesh, fileContents::RubiksCubeObj>(),
+                .mesh =
+                    deserialize<
+                        Mesh,
+                        fileContents::RubiksCubeCtoObj
+                    >(),
                 .materialLibrary =
-                    deserialize<MaterialLibrary, fileContents::RubiksCubeMtl>()
+                    deserialize<
+                        MaterialLibrary,
+                        fileContents::RubiksCubeCtoMtl
+                    >()
             };
 
         const auto simulationObjects =

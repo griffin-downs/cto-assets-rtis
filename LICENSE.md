@@ -2,7 +2,7 @@
 
 ## Copyright
 
-Copyright (C) 2024, Griffin Downs. All rights reserved.
+Copyright (C) 2025, Griffin Downs. All rights reserved.
 
 ## Usage License
 

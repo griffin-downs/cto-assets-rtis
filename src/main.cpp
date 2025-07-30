@@ -1,9 +1,8 @@
 // =============================================================================
-// Copyright (C) 2024, Griffin Downs. All rights reserved.
+// Copyright (C) 2025, Griffin Downs. All rights reserved.
 // This file is part of cto-assets-rtis. See LICENSE.md for details.
 // =============================================================================
 
-#define DEBUG
 
 #include <functional>
 #include <iostream>

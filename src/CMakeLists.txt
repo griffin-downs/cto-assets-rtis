@@ -1,5 +1,5 @@
 # ==============================================================================
-# Copyright (C) 2024, Griffin Downs. All rights reserved.
+# Copyright (C) 2025, Griffin Downs. All rights reserved.
 # This file is part of cto-assets-rtis. See LICENSE.md for details.
 # ==============================================================================
 
@@ -60,6 +60,7 @@ if(EMSCRIPTEN)
     if (CMAKE_BUILD_TYPE STREQUAL Debug)
         list(APPEND TARGET_LINK_FLAGS
             -s GL_ASSERTIONS=1
+            -s ASSERTIONS=1
             -s GL_DEBUG=1
         )
     endif()

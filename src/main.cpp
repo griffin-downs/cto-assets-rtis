@@ -4,12 +4,7 @@
 // =============================================================================
 
 
-#include <functional>
 #include <iostream>
-
-#ifdef __EMSCRIPTEN__
-#include <emscripten/emscripten.h>
-#endif
 
 #include "window/WindowSystem.h"
 
@@ -26,86 +21,12 @@
 #include "input/InputSystem.h"
 #include "simulation/FixedRateTimer.h"
 #include "simulation/SimulationObject.h"
+#include "simulation/GameLoop.h"
 
-
-namespace ctoAssetsRTIS
-{
-class MainLoop
-{
-public:
-    struct Configuration
-    {
-        std::function<bool()> nativeLoopPredicate;
-    };
-#ifndef __EMSCRIPTEN__
-    MainLoop(Configuration configuration)
-    : nativeLoopPredicate(configuration.nativeLoopPredicate)
-    {
-    }
-#else
-    MainLoop(Configuration)
-    {
-    }
-#endif
-
-    struct Parameters
-    {
-        std::function<void()> loopLogic;
-    };
-    void operator()(Parameters arguments)
-    {
-        auto& logic = arguments.loopLogic;
-
-#ifndef __EMSCRIPTEN__
-        while (this->nativeLoopPredicate())
-        {
-            logic();
-        }
-#else
-        auto wrappedLogic =
-            std::function<void()>
-            {
-                [&]
-                {
-                    try
-                    {
-                        logic();
-                    }
-                    catch (const std::exception& exception)
-                    {
-                        emscripten_cancel_main_loop();
-                        throw exception;
-                    }
-                }
-            };
-
-        emscripten_set_main_loop_arg(
-            [](void* functionPointer)
-            {
-                auto& function =
-                    *reinterpret_cast<
-                        std::function<void()>*
-                    >(functionPointer);
-
-                function();
-            },
-            &wrappedLogic,
-            0,
-            1);
-#endif
-    }
-private:
-#ifndef __EMSCRIPTEN__
-    std::function<bool()> nativeLoopPredicate;
-#endif
-};
-} // namespace ctoAssetsRTIS
 
 int main()
 {
     using namespace ctoAssetsRTIS;
-
-    std::cout << "Hello!\n";
 
     try
     {
@@ -190,7 +111,7 @@ int main()
 
         auto timer = FixedRateTimer<float>({ .targetFPS = 60.0f });
 
-        MainLoop({
+        GameLoop({
             .nativeLoopPredicate = [&]{ return !inputSystem.isExitRequested(); }
         })({
             .loopLogic =

@@ -13,8 +13,11 @@
 
 #include "window/WindowSystem.h"
 
-#include "RubiksCube.cto.mtl.h"
-#include "RubiksCube.cto.obj.h"
+#include "OuterWireDodecahedron.cto.mtl.h"
+#include "OuterWireDodecahedron.cto.obj.h"
+#include "VoronoiSphere.cto.mtl.h"
+#include "VoronoiSphere.cto.obj.h"
+
 #include "graphics/camera/Camera.h"
 #include "graphics/model/mesh/Mesh.h"
 #include "graphics/model/Model.h"
@@ -120,8 +123,8 @@ int main()
 
         auto camera = Camera({
             .radius = 2.0f,
-            .rotationSensitivity = 0.0002f,
-            .dampingFactor = 0.002f,
+            .rotationSensitivity = 0.0001f,
+            .dampingFactor = 0.0005f,
             .initialYawDegrees = 35.0f,
             .initialPitchDegrees = -20.0f
         });
@@ -136,18 +139,33 @@ int main()
             .window = windowSystem.getWindow().get()
         });
 
-        const auto rubiksCubeModel =
+        const auto outerWireDodecahedronModel =
             Model
             {
                 .mesh =
                     deserialize<
                         Mesh,
-                        fileContents::RubiksCubeCtoObj
+                        fileContents::OuterWireDodecahedronCtoObj
                     >(),
                 .materialLibrary =
                     deserialize<
                         MaterialLibrary,
-                        fileContents::RubiksCubeCtoMtl
+                        fileContents::OuterWireDodecahedronCtoMtl
+                    >()
+            };
+
+        const auto voronoiSphereModel =
+            Model
+            {
+                .mesh =
+                    deserialize<
+                        Mesh,
+                        fileContents::VoronoiSphereCtoObj
+                    >(),
+                .materialLibrary =
+                    deserialize<
+                        MaterialLibrary,
+                        fileContents::VoronoiSphereCtoMtl
                     >()
             };
 
@@ -155,8 +173,13 @@ int main()
             std::to_array({
                 SimulationObject
                 {
-                    .model = rubiksCubeModel,
-                    .transform = Transform({ .scale = glm::vec3(0.075f) })
+                    .model = outerWireDodecahedronModel,
+                    .transform = Transform({ .scale = glm::vec3(0.04f) })
+                },
+                SimulationObject
+                {
+                    .model = voronoiSphereModel,
+                    .transform = Transform({ .scale = glm::vec3(0.035f) })
                 }
             });
 

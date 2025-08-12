@@ -4,8 +4,6 @@
 # ==============================================================================
 
 
-# include("${CMAKE_SOURCE_DIR}/cmake/GenerateHeaders.cmake")
-
 add_executable(${PROJECT_NAME} main.cpp)
 
 include("${CMAKE_SOURCE_DIR}/cmake/CompileAssets.cmake")
@@ -13,11 +11,13 @@ set(COMPILED_ASSETS_INCLUDE_DIRECTORY "${CMAKE_BINARY_DIR}/compiled-assets")
 compile_assets(
     TARGET_NAME ${PROJECT_NAME}
     INPUT_FILES
-        "${CMAKE_SOURCE_DIR}/assets/RubiksCube.obj"
+        "${CMAKE_SOURCE_DIR}/assets/OuterWireDodecahedron.obj"
+        "${CMAKE_SOURCE_DIR}/assets/VoronoiSphere.obj"
     OUTPUT_DIRECTORY
         "${COMPILED_ASSETS_INCLUDE_DIRECTORY}"
 )
 
+include("${CMAKE_SOURCE_DIR}/cmake/BatchStringifyFiles.cmake")
 set(STRINGIFIED_SHADERS_INCLUDE_DIRECTORY
     "${CMAKE_BINARY_DIR}/stringified-shaders"
 )

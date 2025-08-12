@@ -1,5 +1,5 @@
 // =============================================================================
-// Copyright (C) 2024, Griffin Downs. All rights reserved.
+// Copyright (C) 2025, Griffin Downs. All rights reserved.
 // This file is part of cto-assets-rtis. See LICENSE.md for details.
 // =============================================================================
 
@@ -135,7 +135,7 @@ public:
 
     void clearScreen() const
     {
-        glClearColor(0.08f, 0.467f, 0.741f, 1.0f);
+        glClearColor(0.173f, 0.220f, 0.494f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 

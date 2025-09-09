@@ -51,6 +51,19 @@ public:
         return *applicationStatePointer;
     }
 
+    static ApplicationState& getStateFromWindow(void* window)
+    {
+        auto windowPointer = static_cast<GLFWwindow*>(window);
+
+        if (!windowPointer)
+        {
+            throw std::runtime_error("Failed to convert void* to GLFWwindow");
+        }
+
+
+        return getStateFromWindow(windowPointer);
+    }
+
 private:
     ApplicationState state;
 };

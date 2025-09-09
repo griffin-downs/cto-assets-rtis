@@ -1,5 +1,5 @@
 // =============================================================================
-// Copyright (C) 2024, Griffin Downs. All rights reserved.
+// Copyright (C) 2025, Griffin Downs. All rights reserved.
 // This file is part of cto-assets-rtis. See LICENSE.md for details.
 // =============================================================================
 
@@ -10,7 +10,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include "graphics/camera/Camera.h"
 #include "InputStates.h"
 
 namespace ctoAssetsRTIS
@@ -32,13 +31,13 @@ public:
 #ifdef __EMSCRIPTEN__
         emscripten_set_touchmove_callback(
             EMSCRIPTEN_EVENT_TARGET_WINDOW,
-            &this->states.mouseStates,
+            this->window.get(),
             EM_FALSE,
             touchMoveCallback);
 
         emscripten_set_touchend_callback(
             EMSCRIPTEN_EVENT_TARGET_WINDOW,
-            &this->states.mouseStates,
+            this->window.get(),
             EM_FALSE,
             touchEndCallback);
 #endif
@@ -60,8 +59,12 @@ public:
     }
 #endif
 
-    void pollEvents() const
+    void startFrame()
     {
+        this->states
+            .mouseStates
+            .startFrame();
+
         glfwPollEvents();
     }
 
@@ -80,33 +83,36 @@ private:
         const EmscriptenTouchEvent* event,
         void* userData)
     {
-        auto& mouseStates = MouseStates::fromPointer(userData);
+        auto& [
+            projectionMatrixManager,
+            inputSystem
+        ] = ApplicationStateManager::getStateFromWindow(userData);
+            
+        auto& mouseStates =
+            inputSystem
+                .getStates()
+                .mouseStates;
+
         if (event->numTouches <= 0)
         {
-            mouseStates.touchActive = false;
+            mouseStates.endContact();
             return EM_TRUE;
         }
 
-        mouseStates.touchActive = true;
-
-        const auto clientX =  event->touches[0].clientX;
-        const auto clientY =  event->touches[0].clientY;
-
-        if (mouseStates.firstMove)
+        if (!mouseStates.isContactActive())
         {
-            mouseStates.currentCursorPosition.x = clientX;
-            mouseStates.currentCursorPosition.y = clientY;
-
-            mouseStates.lastCursorPosition = mouseStates.currentCursorPosition;
-
-            mouseStates.firstMove = false;
-            return EM_TRUE;
+            mouseStates.beginContact();
         }
 
-        mouseStates.lastCursorPosition = mouseStates.currentCursorPosition;
+        const auto clientX = event->touches[0].clientX;
+        const auto clientY = event->touches[0].clientY;
+        const auto viewportDimensions =
+            projectionMatrixManager.getViewportDimensions();
 
-        mouseStates.currentCursorPosition.x = clientX;
-        mouseStates.currentCursorPosition.y = clientY;
+        mouseStates.updateDevicePosition(
+            clientX,
+            clientY,
+            viewportDimensions);
 
         return EM_TRUE;
     }
@@ -116,7 +122,16 @@ private:
         const EmscriptenTouchEvent* /* event */,
         void* userData)
     {
-        MouseStates::fromPointer(userData).touchActive = false;
+        auto& [
+            _,
+            inputSystem
+        ] = ApplicationStateManager::getStateFromWindow(userData);
+
+        inputSystem
+            .getStates()
+            .mouseStates
+            .endContact();
+
         return EM_TRUE;
     }
 #endif
@@ -126,33 +141,23 @@ private:
         double xPos,
         double yPos)
     {
+        auto& [
+            projectionMatrixManager,
+            inputSystem
+        ] = ApplicationStateManager::getStateFromWindow(window);
+
         auto& mouseStates =
-            ApplicationStateManager
-                ::getStateFromWindow(window)
-                .inputSystem
+            inputSystem
                 .getStates()
                 .mouseStates;
 
-        if (mouseStates.touchActive)
-        {
-            return;
-        }
+        const auto viewportDimensions =
+            projectionMatrixManager.getViewportDimensions();
 
-        if (mouseStates.firstMove)
-        {
-            mouseStates.currentCursorPosition.x = xPos;
-            mouseStates.currentCursorPosition.y = yPos;
-
-            mouseStates.lastCursorPosition = mouseStates.currentCursorPosition;
-
-            mouseStates.firstMove = false;
-            return;
-        }
-
-        mouseStates.lastCursorPosition = mouseStates.currentCursorPosition;
-
-        mouseStates.currentCursorPosition.x = xPos;
-        mouseStates.currentCursorPosition.y = yPos;
+        mouseStates.updateDevicePosition(
+            xPos,
+            yPos,
+            viewportDimensions);
     }
 
     static void mouseButtonCallback(
@@ -168,20 +173,20 @@ private:
                 .getStates()
                 .mouseStates;
 
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-        {
-            mouseStates.touchActive = false;
-            mouseStates.buttonPressed = false;
-        }
-
-        if (mouseStates.touchActive)
+        if (button != GLFW_MOUSE_BUTTON_LEFT)
         {
             return;
         }
 
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        if (action == GLFW_PRESS)
         {
-            mouseStates.buttonPressed = true;
+            mouseStates.beginContact();
+            return;
+        }
+
+        if (action == GLFW_RELEASE)
+        {
+            mouseStates.endContact();
         }
     }
 

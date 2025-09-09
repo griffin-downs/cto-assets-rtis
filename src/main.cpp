@@ -42,13 +42,13 @@ int main()
         auto inputSystem =
             InputSystem({ .window = windowSystem.getWindow() });
 
-        auto camera = Camera({
-            .radius = 2.0f,
-            .rotationSensitivity = 0.0001f,
-            .dampingFactor = 0.0005f,
-            .initialYawDegrees = 35.0f,
-            .initialPitchDegrees = -20.0f
-        });
+        // auto camera = Camera({
+        //     .radius = 2.0f,
+        //     .rotationSensitivity = 0.0001f,
+        //     .dampingFactor = 0.0005f,
+        //     .initialYawDegrees = 35.0f,
+        //     .initialPitchDegrees = -20.0f
+        // });
 
         auto applicationStateManager =
             ApplicationStateManager({
@@ -90,22 +90,37 @@ int main()
                     >()
             };
 
-        const auto simulationObjects =
+        auto simulationObjects =
             std::to_array({
                 SimulationObject
                 {
                     .model = outerWireDodecahedronModel,
-                    .transform = Transform({ .scale = glm::vec3(0.04f) })
+                    .transform = Transform({ .scale = glm::vec3(0.4f) }),
+                    .angularMotion =
+                        AngularMotion({
+                            .mouseAngularVelocityGainRadiansPerUnit =
+                                0.02f,
+                            .keyAngularAccelerationRadiansPerSecondSquared =
+                                .0002f,
+                            .dampingRatePerSecond = 0.0015f
+                        })
                 },
                 SimulationObject
                 {
                     .model = voronoiSphereModel,
-                    .transform = Transform({ .scale = glm::vec3(0.035f) })
+                    .transform = Transform({ .scale = glm::vec3(0.35f) }),
+                    .angularMotion =
+                        AngularMotion({
+                            .mouseAngularVelocityGainRadiansPerUnit =
+                                0.015f,
+                            .keyAngularAccelerationRadiansPerSecondSquared =
+                                .00015f,
+                            .dampingRatePerSecond = 0.0005f
+                        })
                 }
             });
 
         auto renderer = Renderer({
-            .camera = camera,
             .projectionMatrixManager = projectionMatrixManager
         });
 
@@ -121,18 +136,18 @@ int main()
 
                 windowSystem.clearScreen();
 
-                camera.update({
-                    .inputStates = inputSystem.getStates(),
-                    .viewportDimensions =
-                        projectionMatrixManager.getViewportDimensions(),
-                    .dt = timer.getDeltaTime()
-                });
+                inputSystem.startFrame();
+
+                for (auto& object : simulationObjects)
+                {
+                    object.update(
+                        inputSystem.getStates(),
+                        timer.getDeltaTime());
+                }
 
                 renderer.render({ simulationObjects });
 
                 windowSystem.swapBuffers();
-
-                inputSystem.pollEvents();
 
                 timer.endFrame();
             }

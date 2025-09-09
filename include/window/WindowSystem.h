@@ -135,7 +135,7 @@ public:
 
     void clearScreen() const
     {
-        glClearColor(0.173f, 0.220f, 0.494f, 1.0f);
+        glClearColor(0.992f, 0.815f, 0.584f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 

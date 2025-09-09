@@ -1,5 +1,5 @@
 // =============================================================================
-// Copyright (C) 2024, Griffin Downs. All rights reserved.
+// Copyright (C) 2025, Griffin Downs. All rights reserved.
 // This file is part of cto-assets-rtis. See LICENSE.md for details.
 // =============================================================================
 
@@ -20,14 +20,21 @@ class Renderer
 public:
     struct RendererConfiguration
     {
-        Camera& camera;
         ProjectionMatrixManager& projectionMatrixManager;
     };
     Renderer(RendererConfiguration configuration)
-    : camera{ configuration.camera }
-    , projectionMatrixManager{ configuration.projectionMatrixManager }
+    : projectionMatrixManager{ configuration.projectionMatrixManager }
     {
         this->shader.use();
+
+        constexpr auto radius = 20.0f;
+        const auto view = glm::lookAt(
+            glm::vec3(0.0f, 0.0f, radius),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f));
+
+        this->shader.set("view", view);
+
         this->shader.set(
             "projection",
             this->projectionMatrixManager.getMatrix());
@@ -35,8 +42,6 @@ public:
 
     void render(std::span<const SimulationObject> simulationObjects)
     {
-        this->shader.set("view", this->camera.getViewMatrix());
-
         if (this->projectionMatrixManager.wasUpdated())
         {
             this->shader.set(
@@ -91,7 +96,6 @@ private:
                 .fragment = fileContents::FragmentShaderGlsl::value.data
             });
 
-    Camera& camera;
     ProjectionMatrixManager& projectionMatrixManager;
 };
 } // namespace ctoAssetsRTIS

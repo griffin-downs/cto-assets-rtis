@@ -24,7 +24,7 @@ public:
         int height;
     };
     ViewportDimensions(Dimensions dimensions)
-    : width{ dimensions.width > 0 ? dimensions.width : 0 }
+    : width{ dimensions.width > 0 ? dimensions.width : 1 }
     , height{ dimensions.height > 0 ? dimensions.height : 1 }
     {
     }

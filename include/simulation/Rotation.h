@@ -1,5 +1,5 @@
 // =============================================================================
-// Copyright (C) 2024, Griffin Downs. All rights reserved.
+// Copyright (C) 2025, Griffin Downs. All rights reserved.
 // This file is part of cto-assets-rtis. See LICENSE.md for details.
 // =============================================================================
 
@@ -21,7 +21,7 @@ public:
     {
     }
 
-    struct EulerAnglesDegrees
+    struct EulerAnglesRadians
     {
         float yaw = 0.0f;
         float pitch = 0.0f;
@@ -32,24 +32,48 @@ public:
             return
                 glm::quat(
                     glm::vec3(
-                        glm::radians(pitch),
-                        glm::radians(yaw),
-                        glm::radians(roll)));
+                        pitch,
+                        yaw,
+                        roll));
         }
     };
-    Rotation(EulerAnglesDegrees angles)
+    Rotation(EulerAnglesRadians angles)
     : orientation(angles.toQuaternion())
     {
     }
 
-    void setEulerDegrees(EulerAnglesDegrees angles)
+    void rotateYawPitchRollRadians(EulerAnglesRadians eulerAnglesRadians)
     {
-        this->orientation = angles.toQuaternion();
-    }
+        const auto [
+            yaw,
+            pitch,
+            roll
+        ] = eulerAnglesRadians;
 
-    void rotateEulerDegrees(EulerAnglesDegrees angles)
-    {
-        this->orientation = this->orientation * angles.toQuaternion();
+        const auto up      = glm::vec3(0.0f, 1.0f, 0.0f);
+        const auto right   = glm::vec3(1.0f, 0.0f, 0.0f);
+        const auto forward = glm::vec3(0.0f, 0.0f, 1.0f);
+
+        auto qYaw =
+            glm::angleAxis(
+                yaw,
+                glm::vec3(0.0f, 1.0f, 0.0f));
+
+        auto qPitch =
+            glm::angleAxis(
+                pitch,
+                glm::vec3(1.0f, 0.0f, 0.0f));
+
+        auto qRoll =
+            glm::angleAxis(
+                roll,
+                glm::vec3(0.0f, 0.0f, 1.0f));
+
+        this->orientation = qYaw * this->orientation;
+        this->orientation = qPitch * this->orientation;
+        this->orientation = qRoll * this->orientation;
+
+        this->orientation = glm::normalize(this->orientation);
     }
 
     auto getRotationMatrix() const

@@ -13,16 +13,16 @@ void main()
 {
     // --- Hardcoded lighting & style ---
     const vec3  kLightColor        = vec3(1.0);
-    const vec3  kLightPositionW    = vec3(4.0, 6.0, 5.0);
-    const float kAmbientIntensity  = 0.2;
+    const vec3  kLightPositionW    = vec3(8.0, 6.0, 15.0);
+    const float kAmbientIntensity  = 0.4;
     const float kSpecularStrength  = 0.50;
     const float kShininess         = 85.0;
 
     const float kFacetStrength      = 1.0; // 0=smooth, 1=flat
     const float kNormalTintStrength = 0.75;
     const float kNormalTintContrast = 4.0;
-    const float kRimStrength        = 0.20;
-    const float kRimExponent        = 2.5;
+    const float kRimStrength        = 0.15;
+    const float kRimExponent        = 2.0;
 
     // Smooth vs geometric (facet) normal in *view* space
     vec3 Nsmooth = normalize(vViewNormal);

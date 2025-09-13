@@ -33,9 +33,9 @@ struct SimulationObject
         transform
             .rotation
             .rotateYawPitchRollRadians({
-                .yaw   = deltaRadians.x,
+                .yaw = deltaRadians.x,
                 .pitch = deltaRadians.y,
-                .roll  = deltaRadians.z
+                .roll = deltaRadians.z
             });
     }
 };

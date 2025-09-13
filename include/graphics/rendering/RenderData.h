@@ -6,16 +6,22 @@
 
 #pragma once
 
-#include "graphics/rendering/RenderData.h"
-#include "materials/MaterialLibrary.h"
-#include "mesh/Mesh.h"
+#include <optional>
+
+#include "utils/Constrained.h"
+
 
 namespace ctoAssetsRTIS
 {
-struct Model
+struct RenderData
 {
-    const Mesh mesh;
-    const MaterialLibrary materialLibrary;
-    const RenderData renderData;
+    struct Faceted
+    {
+        NormalizedFloat strength{ 1.0f };
+        AtLeast1Float power{ 1.0f };
+    };
+
+    std::optional<Faceted> faceted;
+    std::optional<NormalizedFloat> bloom{};
 };
 } // namespace ctoAssetsRTIS

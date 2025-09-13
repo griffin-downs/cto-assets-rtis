@@ -30,17 +30,17 @@ public:
         if (!this->haveBaseline)
         {
             this->lastSamplePixels = current;
-            this->haveBaseline     = true;
+            this->haveBaseline = true;
             return;
         }
 
         this->pendingDeltaPixels += (lastSamplePixels - current);
-        this->lastSamplePixels      = current;
+        this->lastSamplePixels = current;
     }
 
     void resetBaseline()
     {
-        this->haveBaseline         = false;
+        this->haveBaseline = false;
         this->frameDeltaPixels = glm::vec2{ 0.0f, 0.0f };
     }
 

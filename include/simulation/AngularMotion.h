@@ -105,9 +105,19 @@ public:
         }
     }
 
+    auto getAngularSpeed() const
+    {
+        return glm::length(this->angularVelocityRadians);
+    }
+
+    auto getMaxAngularSpeed() const
+    {
+        return this->maxRadiansPerSecond;
+    }
+
     auto updateMotion(float dt)
     {
-        auto speed = glm::length(this->angularVelocityRadians);
+        auto speed = this->getAngularSpeed();
         if (speed > this->maxRadiansPerSecond && speed > 0.0f)
         {
             this->angularVelocityRadians =
@@ -121,11 +131,6 @@ public:
         this->angularVelocityRadians *= factor;
 
         return delta;
-    }
-
-    auto getAngularVelocityRadians() const
-    {
-        return this->angularVelocityRadians;
     }
 
 private:

@@ -10,6 +10,7 @@
 #include "VertexShader.glsl.h"
 #include "simulation/FixedRateTimer.h"
 #include "simulation/SimulationObject.h"
+#include "RenderData.h"
 #include "Shader.h"
 
 
@@ -28,10 +29,11 @@ public:
         this->shader.use();
 
         constexpr auto radius = 20.0f;
-        const auto view = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, radius),
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f));
+        const auto view =
+            glm::lookAt(
+                glm::vec3{ 0.0f, 0.0f, radius },
+                glm::vec3{ 0.0f, 0.0f, 0.0f },
+                glm::vec3{ 0.0f, 1.0f, 0.0f });
 
         this->shader.set("view", view);
 
@@ -49,45 +51,71 @@ public:
                 this->projectionMatrixManager.getMatrix());
         }
 
-        const auto drawModel =
-        [&](const auto& model)
+        const auto drawSimulationObject =
+        [&](const auto& simulationObject)
         {
-            const auto meshContext = model.mesh.bind();
-            for (const auto& materialChunk : model.mesh.materialChunks)
-            {
-                const auto& materialDefinition =
-                    model.materialLibrary.find(materialChunk.name);
+            const auto& [
+                model,
+                transform,
+                angularMotion
+            ] = simulationObject;
 
-                const auto& diffuseColor = materialDefinition.diffuseColor;
+            this->shader.set("model", transform.getModelMatrix());
+            // this->applyRenderData(model.renderData);
+
+            const auto& [
+                mesh,
+                materialLibrary,
+                renderData
+            ] = model;
+
+            this->applyRenderData(renderData);
+
+            const auto meshContext = mesh.bind();
+            for (const auto& materialChunk : mesh.materialChunks)
+            {
+                const auto& [
+                    materialName,
+                    offset,
+                    count
+                ] = materialChunk;
+
+                const auto& [
+                    _,
+                    diffuseColor
+                ] = materialLibrary.find(materialName);
+
                 this->shader.set(
                     "color",
                     glm::vec4(
                         diffuseColor[0],
                         diffuseColor[1],
                         diffuseColor[2],
-                        1.0f));
+                        1.0f
+                ));
 
                 glDrawElements(
                     GL_TRIANGLES,
-                    materialChunk.count,
+                    count,
                     GL_UNSIGNED_INT,
-                    (void*)(materialChunk.offset * sizeof(GLuint)));
+                    (void*)(offset * sizeof(GLuint)));
             }
         };
 
         for (const auto& simulationObject : simulationObjects)
         {
-            this->shader.set(
-                "model",
-                simulationObject
-                    .transform
-                    .getModelMatrix());
-
-            drawModel(simulationObject.model);
+            drawSimulationObject(simulationObject);
         }
     }
 
 private:
+    void applyRenderData(const RenderData& renderData)
+    {
+        // this->shader.set();
+        // this->shader.set();
+        // this->shader.set();
+    }
+
     const Shader shader =
         Shader(
             Shader::SourcePaths

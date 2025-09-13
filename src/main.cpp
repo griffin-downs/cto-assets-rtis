@@ -13,7 +13,6 @@
 #include "VoronoiSphere.cto.mtl.h"
 #include "VoronoiSphere.cto.obj.h"
 
-#include "graphics/camera/Camera.h"
 #include "graphics/model/mesh/Mesh.h"
 #include "graphics/model/Model.h"
 #include "graphics/rendering/Renderer.h"
@@ -41,14 +40,6 @@ int main()
 
         auto inputSystem =
             InputSystem({ .window = windowSystem.getWindow() });
-
-        // auto camera = Camera({
-        //     .radius = 2.0f,
-        //     .rotationSensitivity = 0.0001f,
-        //     .dampingFactor = 0.0005f,
-        //     .initialYawDegrees = 35.0f,
-        //     .initialPitchDegrees = -20.0f
-        // });
 
         auto applicationStateManager =
             ApplicationStateManager({

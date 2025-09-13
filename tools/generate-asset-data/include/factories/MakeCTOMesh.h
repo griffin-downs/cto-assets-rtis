@@ -18,23 +18,26 @@ namespace ctoAssetsRTIS
 {
 auto makeCTOMesh(const aiScene& scene)
 {
-    auto mesh = CTOMesh{
-        .name = "MergedMesh",
-        .vertices =
-        [&]
+    auto mesh =
+        CTOMesh
         {
-            auto vertices = std::vector<CTOMesh::Vertex>{};
+            .name = "MergedMesh",
+            .vertices =
+            [&]
+            {
+                auto vertices = std::vector<CTOMesh::Vertex>{};
 
-            // Preallocate with heuristic
-            size_t totalVertices = 0;
-            for (auto i = size_t{}; i < scene.mNumMeshes; i++)
-                totalVertices += scene.mMeshes[i]->mNumVertices;
-            vertices.reserve(totalVertices);
+                size_t totalVertices = 0;
+                for (auto i = size_t{}; i < scene.mNumMeshes; i++)
+                {
+                    totalVertices += scene.mMeshes[i]->mNumVertices;
+                }
+                vertices.reserve(totalVertices);
 
-            return vertices;
-        }(),
-        .materialDirectives = {}
-    };
+                return vertices;
+            }(),
+            .materialDirectives = {}
+        };
 
     auto materialLookup = std::map<std::string, size_t>{};
     auto indexOffset = size_t{};
@@ -46,7 +49,6 @@ auto makeCTOMesh(const aiScene& scene)
         const auto materialName =
             getMaterialProperty<aiString>(material, AI_MATKEY_NAME);
 
-        // Add vertices for this mesh
         for (auto i = size_t{}; i < assimpMesh.mNumVertices; i++)
         {
             mesh.vertices.push_back({
@@ -70,7 +72,6 @@ auto makeCTOMesh(const aiScene& scene)
             });
         }
 
-        // Ensure a material directive exists
         const auto directiveIndex =
         [&]() -> size_t
         {
@@ -87,7 +88,6 @@ auto makeCTOMesh(const aiScene& scene)
             return newIndex;
         }();
 
-        // Add faces to the directive
         auto& faces = mesh.materialDirectives[directiveIndex].faces;
         faces.reserve(faces.size() + assimpMesh.mNumFaces);
 

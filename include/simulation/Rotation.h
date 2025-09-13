@@ -50,28 +50,17 @@ public:
             roll
         ] = eulerAnglesRadians;
 
-        const auto up      = glm::vec3(0.0f, 1.0f, 0.0f);
-        const auto right   = glm::vec3(1.0f, 0.0f, 0.0f);
-        const auto forward = glm::vec3(0.0f, 0.0f, 1.0f);
+        static const auto globalUp = glm::vec3{ 0.0f, 1.0f, 0.0f };
+        static const auto globalRight = glm::vec3{ 1.0f, 0.0f, 0.0f };
+        static const auto globalForward = glm::vec3{ 0.0f, 0.0f, 1.0f };
 
-        auto qYaw =
-            glm::angleAxis(
-                yaw,
-                glm::vec3(0.0f, 1.0f, 0.0f));
+        const auto yawQuaternion = glm::angleAxis(yaw, globalUp);
+        const auto pitchQuaternion = glm::angleAxis(pitch, globalRight);
+        const auto rollQuaternion = glm::angleAxis(roll, globalForward);
 
-        auto qPitch =
-            glm::angleAxis(
-                pitch,
-                glm::vec3(1.0f, 0.0f, 0.0f));
-
-        auto qRoll =
-            glm::angleAxis(
-                roll,
-                glm::vec3(0.0f, 0.0f, 1.0f));
-
-        this->orientation = qYaw * this->orientation;
-        this->orientation = qPitch * this->orientation;
-        this->orientation = qRoll * this->orientation;
+        this->orientation = yawQuaternion * this->orientation;
+        this->orientation = pitchQuaternion * this->orientation;
+        this->orientation = rollQuaternion * this->orientation;
 
         this->orientation = glm::normalize(this->orientation);
     }

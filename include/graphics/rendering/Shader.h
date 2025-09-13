@@ -220,6 +220,11 @@ public:
         glUniform1fv(getUniform(uniformName), count, &value);
     }
 
+    void set(const char* uniformName, bool value) const
+    {
+        glUniform1i(getUniform(uniformName), value ? 1 : 0);
+    }
+
 private:
     const GLuint shaderProgramId;
 };

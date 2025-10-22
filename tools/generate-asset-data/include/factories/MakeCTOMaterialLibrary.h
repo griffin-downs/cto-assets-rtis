@@ -45,7 +45,11 @@ auto makeCTOMaterialLibrary(const aiScene& scene)
                         .diffuseColor =
                             getMaterialProperty<
                                 aiColor3D
-                            >(material, AI_MATKEY_COLOR_DIFFUSE)
+                            >(material, AI_MATKEY_COLOR_DIFFUSE),
+                        .opacity =
+                            getMaterialProperty<
+                                float
+                            >(material, AI_MATKEY_OPACITY)
                     });
                 }
 

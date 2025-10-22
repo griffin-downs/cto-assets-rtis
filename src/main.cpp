@@ -5,22 +5,14 @@
 
 
 #include <iostream>
+#include <cstdlib>
 
-#include "window/WindowSystem.h"
-
-#include "OuterWireDodecahedron.cto.mtl.h"
-#include "OuterWireDodecahedron.cto.obj.h"
-#include "VoronoiSphere.cto.mtl.h"
-#include "VoronoiSphere.cto.obj.h"
-
-#include "graphics/model/mesh/Mesh.h"
-#include "graphics/model/Model.h"
+#include "window/Window.h"
+#include "application/ApplicationLoop.h"
+#include "application/Timer.h"
 #include "graphics/rendering/Renderer.h"
 #include "graphics/rendering/ProjectionMatrixManager.h"
-#include "input/InputSystem.h"
-#include "simulation/FixedRateTimer.h"
-#include "simulation/SimulationObject.h"
-#include "simulation/GameLoop.h"
+#include "simulation/Simulation.h"
 
 
 int main()
@@ -29,124 +21,31 @@ int main()
 
     try
     {
-        auto projectionMatrixManager = ProjectionMatrixManager();
+        auto projectionMatrixManager = ProjectionMatrixManager{};
+        auto window = Window{ projectionMatrixManager };
+        auto simulation = Simulation{};
+        auto renderer = Renderer{ projectionMatrixManager };
+        auto hostTimer = Timer{};
 
-        const auto windowSystem =
-            WindowSystem({
-                .title = "cto-assets-rtis",
-                .viewportDimensions =
-                    projectionMatrixManager.getViewportDimensions()
-            });
-
-        auto inputSystem =
-            InputSystem({ .window = windowSystem.getWindow() });
-
-        auto applicationStateManager =
-            ApplicationStateManager({
-                .projectionMatrixManager = projectionMatrixManager,
-                .inputSystem = inputSystem
-            });
-
-        applicationStateManager.setWindowUserDataToHeldState({
-            .window = windowSystem.getWindow().get()
-        });
-
-        const auto outerWireDodecahedronModel =
-            Model
-            {
-                .mesh =
-                    deserialize<
-                        Mesh,
-                        fileContents::OuterWireDodecahedronCtoObj
-                    >(),
-                .materialLibrary =
-                    deserialize<
-                        MaterialLibrary,
-                        fileContents::OuterWireDodecahedronCtoMtl
-                    >()
-            };
-
-        const auto voronoiSphereModel =
-            Model
-            {
-                .mesh =
-                    deserialize<
-                        Mesh,
-                        fileContents::VoronoiSphereCtoObj
-                    >(),
-                .materialLibrary =
-                    deserialize<
-                        MaterialLibrary,
-                        fileContents::VoronoiSphereCtoMtl
-                    >()
-            };
-
-        auto simulationObjects =
-            std::to_array({
-                SimulationObject
-                {
-                    .model = outerWireDodecahedronModel,
-                    .transform = Transform({ .scale = glm::vec3(0.4f) }),
-                    .angularMotion =
-                        AngularMotion({
-                            .mouseAngularVelocityGainRadiansPerUnit =
-                                0.02f,
-                            .keyAngularAccelerationRadiansPerSecondSquared =
-                                .0002f,
-                            .dampingRatePerSecond = 0.0015f
-                        })
-                },
-                SimulationObject
-                {
-                    .model = voronoiSphereModel,
-                    .transform = Transform({ .scale = glm::vec3(0.35f) }),
-                    .angularMotion =
-                        AngularMotion({
-                            .mouseAngularVelocityGainRadiansPerUnit =
-                                0.015f,
-                            .keyAngularAccelerationRadiansPerSecondSquared =
-                                .00015f,
-                            .dampingRatePerSecond = 0.0005f
-                        })
-                }
-            });
-
-        auto renderer = Renderer({
-            .projectionMatrixManager = projectionMatrixManager
-        });
-
-        auto timer = FixedRateTimer<float>({ .targetFPS = 60.0f });
-
-        GameLoop({
-            .nativeLoopPredicate = [&]{ return !inputSystem.isExitRequested(); }
+        ApplicationLoop({
+            .nativeLoopPredicate = [&]{ return !window.isExitRequested(); }
         })({
             .loopLogic =
             [&]
             {
-                timer.startFrame();
-
-                windowSystem.clearScreen();
-
-                inputSystem.startFrame();
-
-                for (auto& object : simulationObjects)
-                {
-                    object.update(
-                        inputSystem.getStates(),
-                        timer.getDeltaTime());
-                }
-
-                renderer.render({ simulationObjects });
-
-                windowSystem.swapBuffers();
-
-                timer.endFrame();
+                const auto deltaSeconds = hostTimer.getDeltaSeconds();
+                std::cout << deltaSeconds << std::endl;
+                window.startFrame();
+                simulation.update(deltaSeconds, window.getInputStates());
+                renderer.render(simulation.getObjects());
+                window.swapBuffers();
+                hostTimer.reset();
             }
         });
     }
     catch (const std::exception& exception)
     {
         std::cerr << exception.what() << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 }

@@ -3,6 +3,7 @@
 // This file is part of cto-assets-rtis. See LICENSE.md for details.
 // =============================================================================
 
+
 #pragma once
 
 #include <glm/vec2.hpp>
@@ -34,8 +35,13 @@ public:
             return;
         }
 
-        this->pendingDeltaPixels += (lastSamplePixels - current);
+        this->pendingDeltaPixels += (this->lastSamplePixels - current);
         this->lastSamplePixels = current;
+    }
+
+    void addPendingDeltaPixels(float deltaX, float deltaY)
+    {
+        this->frameDeltaPixels += glm::vec2 { deltaX, deltaY };
     }
 
     void resetBaseline()

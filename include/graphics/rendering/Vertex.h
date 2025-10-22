@@ -156,6 +156,7 @@ struct VertexTrait
     }
 };
 
-struct Position : public VertexTrait<3> {};
-struct Normal : public VertexTrait<3> {};
+struct Position    : VertexTrait<3> { using VertexTrait<3>::VertexTrait; };
+struct Position2D  : VertexTrait<2> { using VertexTrait<2>::VertexTrait; };
+struct Normal      : VertexTrait<3> { using VertexTrait<3>::VertexTrait; };
 } // namespace ctoAssetsRTIS

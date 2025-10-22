@@ -19,7 +19,7 @@ namespace ctoAssetsRTIS
 template<typename T, typename... Args>
 auto getMaterialProperty(const aiMaterial& material, Args&&... args)
 {
-    static T outVariable;
+    T outVariable;
 
     auto returnCode = material.Get(std::forward<Args>(args)..., outVariable);
     if (returnCode != aiReturn_SUCCESS)
@@ -32,6 +32,13 @@ auto getMaterialProperty(const aiMaterial& material, Args&&... args)
                     typeid(T).name()));
     }
 
-    return assimpSTLConverters::convert(outVariable);
+    if constexpr (std::is_trivial<T>::value)
+    {
+        return outVariable;
+    }
+    else
+    {
+        return assimpSTLConverters::convert(outVariable);
+    }
 }
 } // namespace ctoAssetsRTIS

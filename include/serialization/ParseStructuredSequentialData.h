@@ -293,7 +293,7 @@ public:
         >::value;
 };
 
-namespace WavefrontObjSchema
+namespace CtoObjSchema
 {
     template<typename...>
     using VertexPositionNormal = std::array<float, 6>;
@@ -337,26 +337,31 @@ template<typename ModelData>
 using ParseWavefrontObj =
     ParseStructuredSequentialData<
         ModelData::value,
-        WavefrontObjSchema::Ruleset
+        CtoObjSchema::Ruleset
     >;
 
-namespace WavefrontMtlSchema
+namespace CtoMtlSchema
 {
     template<typename...>
     using DiffuseColor = std::array<float, 3>;
 
-    template<typename IdString, typename DiffuseColors>
+    template<typename...>
+    using Opacity = std::array<float, 1>;
+
+    template<typename IdString, typename DiffuseColors, typename Opacities>
     struct Definition
     {
         IdString id;
         DiffuseColors diffuseColors;
+        Opacities opacities;
     };
 
     using Ruleset =
         Rule<
             Sequence<"newmtl"_ads>,
             Definition,
-            Rule<Sequence<"Kd"_ads>, DiffuseColor>
+            Rule<Sequence<"Kd"_ads>, DiffuseColor>,
+            Rule<Sequence<"d"_ads>, Opacity>
         >;
 }
 
@@ -364,6 +369,6 @@ template<typename MaterialLibraryData>
 using ParseWavefrontMtl =
     ParseStructuredSequentialData<
         MaterialLibraryData::value,
-        WavefrontMtlSchema::Ruleset
+        CtoMtlSchema::Ruleset
     >;
 } // namespace ctoAssetsRTIS

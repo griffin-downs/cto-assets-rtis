@@ -24,8 +24,10 @@ set(STRINGIFIED_SHADERS_INCLUDE_DIRECTORY
 batch_stringify_files(
     TARGET_NAME ${PROJECT_NAME}
     INPUT_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/FragmentShader.glsl"
-        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/VertexShader.glsl"
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/BaseVertexShader.glsl"
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/BaseFragmentShader.glsl"
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/SsaaVertexShader.glsl"
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/SsaaFragmentShader.glsl"
     OUTPUT_DIRECTORY
         "${STRINGIFIED_SHADERS_INCLUDE_DIRECTORY}"
 )

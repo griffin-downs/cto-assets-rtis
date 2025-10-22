@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "graphics/rendering/RenderData.h"
 #include "materials/MaterialLibrary.h"
 #include "mesh/Mesh.h"
 
@@ -16,6 +15,5 @@ struct Model
 {
     const Mesh mesh;
     const MaterialLibrary materialLibrary;
-    const RenderData renderData;
 };
 } // namespace ctoAssetsRTIS

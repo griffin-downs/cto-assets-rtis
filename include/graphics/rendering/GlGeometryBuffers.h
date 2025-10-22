@@ -8,22 +8,20 @@
 
 #include <span>
 
-#include "graphics/rendering/GlObject.h"
-#include "MeshData.h"
+#include "GlObject.h"
+#include "CpuGeometry.h"
 
 namespace ctoAssetsRTIS
 {
-class Mesh
+class GlGeometryBuffers
 {
 public:
-    Mesh(MeshData meshData)
-    : materialChunks{ meshData.materialChunks }
+    GlGeometryBuffers(CpuGeometry cpuGeometry)
     {
         const auto vaoContext = this->vertexArray.bind();
         const auto vboContext = this->vertexBuffer.bind();
         const auto eboContext = this->elementBuffer.bind();
 
-        const auto& cpuGeometry = meshData.cpuGeometry;
         vboContext.bufferData(cpuGeometry.vertices);
         eboContext.bufferData(cpuGeometry.faceIndices);
         vaoContext.configureAttributes(
@@ -31,8 +29,9 @@ public:
             cpuGeometry.vertexAttributes);
     }
 
-    Mesh(const Mesh&) = delete;
-    Mesh& operator=(const Mesh&) = delete;
+    GlGeometryBuffers(const GlGeometryBuffers&) = delete;
+    GlGeometryBuffers(GlGeometryBuffers&&) = delete;
+    GlGeometryBuffers& operator=(const GlGeometryBuffers&) = delete;
 
     class Context
     {
@@ -46,26 +45,20 @@ public:
         Context(Context&&) = delete;
         Context& operator=(const Context&) = delete;
 
-        Context(const Mesh& mesh)
-        : vaoContext{ mesh.vertexArray.bind() }
-        , vboContext{ mesh.vertexBuffer.bind() }
-        , eboContext{ mesh.elementBuffer.bind() }
-        {}
+        Context(const GlGeometryBuffers& glGeometryBuffers)
+        : vaoContext{ glGeometryBuffers.vertexArray.bind() }
+        , vboContext{ glGeometryBuffers.vertexBuffer.bind() }
+        , eboContext{ glGeometryBuffers.elementBuffer.bind() }
+        {
+        }
     };
 
     auto bind() const { return Context(*this); }
-
-    const auto getMaterialChunks() const
-    {
-        return this->materialChunks;
-    }
 
 private:
     const GlVertexArray vertexArray;
     const GlVertexBuffer vertexBuffer;
     const GlElementBuffer elementBuffer;
-
-    const std::span<const MeshData::MaterialChunk> materialChunks;
 
     friend class Context;
 };

@@ -31,11 +31,8 @@ private:
 
 public:
     ProjectionMatrixManager()
-    : viewportDimensions{ ViewportDimensions::getDefault() }
-    , matrix{ calculate(this->viewportDimensions) }
-    , updated{ true }
-    {
-    }
+    : matrix{ calculate(this->viewportDimensions) }
+    {}
 
     ProjectionMatrixManager(const ProjectionMatrixManager&) = delete;
     ProjectionMatrixManager(ProjectionMatrixManager&&) = delete;
@@ -48,7 +45,7 @@ public:
         return this->viewportDimensions;
     }
 
-    bool wasUpdated()
+    auto pollUpdated()
     {
         if (!this->updated)
         {
@@ -67,8 +64,8 @@ public:
     }
 
 private:
-    ViewportDimensions viewportDimensions;
+    ViewportDimensions viewportDimensions{ ViewportDimensions::getDefault() };
     glm::mat4 matrix;
-    bool updated;
+    bool updated{ true };
 };
 } // namespace ctoAssetsRTIS

@@ -20,26 +20,30 @@ private:
 public:
     struct Dimensions
     {
-        int width;
-        int height;
+        int width{};
+        int height{};
     };
     ViewportDimensions(Dimensions dimensions)
     : width{ dimensions.width > 0 ? dimensions.width : 1 }
     , height{ dimensions.height > 0 ? dimensions.height : 1 }
-    {
-    }
+    {}
 
-    int getWidth() const { return this->width; }
-    int getHeight() const { return this->height; }
+    auto getWidth() const { return this->width; }
+    auto getHeight() const { return this->height; }
 
 #ifdef __EMSCRIPTEN__
     static auto fromCanvasSize()
     {
         double width, height;
-        emscripten_get_element_css_size(
+        auto result = emscripten_get_element_css_size(
             "#canvas-container",
             &width,
             &height);
+
+        if (result != EMSCRIPTEN_RESULT_SUCCESS)
+        {
+            return ViewportDimensions({ .width = 800, .height = 600 });
+        }
 
         return
             ViewportDimensions({
@@ -76,16 +80,12 @@ namespace std
 template<>
 class tuple_size<ctoAssetsRTIS::ViewportDimensions>
 : public integral_constant<size_t, 2>
-{
-};
+{};
 
 template<size_t N>
 class tuple_element<N, ctoAssetsRTIS::ViewportDimensions>
 {
 public:
-    using type =
-        decltype(
-            get<N>(
-                declval<ctoAssetsRTIS::ViewportDimensions>()));
+    using type = decltype(get<N>(declval<ctoAssetsRTIS::ViewportDimensions>()));
 };
 } // namespace std

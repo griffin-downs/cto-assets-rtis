@@ -192,7 +192,7 @@ public:
         return glGetUniformLocation(this->shaderProgramId, uniformName);
     }
 
-    void set(const char* uniformName, const glm::mat4& value) const
+    void set(const char* uniformName, glm::mat4 value) const
     {
         const auto count = 1;
         const auto transpose = GL_FALSE;
@@ -204,11 +204,31 @@ public:
             &value[0][0]);
     }
 
-    void set(const char* uniformName, const glm::vec4& value) const
+    void set(const char* uniformName, glm::vec4 value) const
     {
         const auto count = 1;
 
         glUniform4fv(
+            getUniform(uniformName),
+            count,
+            &value[0]);
+    }
+
+    void set(const char* uniformName, glm::vec3 value) const
+    {
+        const auto count = 1;
+
+        glUniform3fv(
+            getUniform(uniformName),
+            count,
+            &value[0]);
+    }
+
+    void set(const char* uniformName, glm::vec2 value) const
+    {
+        const auto count = 1;
+
+        glUniform2fv(
             getUniform(uniformName),
             count,
             &value[0]);
@@ -219,6 +239,13 @@ public:
         constexpr auto count = 1;
         glUniform1fv(getUniform(uniformName), count, &value);
     }
+
+    void set(const char* uniformName, int value) const
+    {
+        constexpr auto count = 1;
+        glUniform1i(getUniform(uniformName), value);
+    }
+
 
     void set(const char* uniformName, bool value) const
     {

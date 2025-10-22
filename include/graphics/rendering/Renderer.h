@@ -6,124 +6,164 @@
 
 #pragma once
 
-#include "FragmentShader.glsl.h"
-#include "VertexShader.glsl.h"
-#include "simulation/FixedRateTimer.h"
-#include "simulation/SimulationObject.h"
-#include "RenderData.h"
+#include "BaseFragmentShader.glsl.h"
+#include "BaseVertexShader.glsl.h"
+#include "SsaaPass.h"
 #include "Shader.h"
+#include "simulation/SimulationObject.h"
 
 
 namespace ctoAssetsRTIS
 {
+#ifdef DEBUG
+namespace
+{
+    void debugMessageCallback(
+        GLenum,
+        GLenum,
+        GLuint,
+        GLenum,
+        GLsizei,
+        const GLchar*,
+        const void*);
+} //unnamed namespace
+#endif
+
 class Renderer
 {
 public:
-    struct RendererConfiguration
+    Renderer(ProjectionMatrixManager& projectionMatrixManager)
+    : projectionMatrixManager{ projectionMatrixManager }
+    , shaderBase(
+        Shader::SourcePaths
+        {
+            .vertex   = fileContents::BaseVertexShaderGlsl::value.data,
+            .fragment = fileContents::BaseFragmentShaderGlsl::value.data
+        })
+    , SsaaPass(projectionMatrixManager.getViewportDimensions())
     {
-        ProjectionMatrixManager& projectionMatrixManager;
-    };
-    Renderer(RendererConfiguration configuration)
-    : projectionMatrixManager{ configuration.projectionMatrixManager }
-    {
-        this->shader.use();
-
-        constexpr auto radius = 20.0f;
-        const auto view =
+#ifdef DEBUG
+        glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback(::debugMessageCallback, nullptr);
+#endif
+        constexpr auto cameraRadius = 20.0f;
+        const auto viewMatrix =
             glm::lookAt(
-                glm::vec3{ 0.0f, 0.0f, radius },
+                glm::vec3{ 0.0f, 0.0f, cameraRadius },
                 glm::vec3{ 0.0f, 0.0f, 0.0f },
                 glm::vec3{ 0.0f, 1.0f, 0.0f });
 
-        this->shader.set("view", view);
-
-        this->shader.set(
-            "projection",
-            this->projectionMatrixManager.getMatrix());
-    }
-
-    void render(std::span<const SimulationObject> simulationObjects)
-    {
-        if (this->projectionMatrixManager.wasUpdated())
+        for (const auto& shaderProgram : { &this->shaderBase })
         {
-            this->shader.set(
+            shaderProgram->use();
+            shaderProgram->set("view", viewMatrix);
+            shaderProgram->set(
                 "projection",
                 this->projectionMatrixManager.getMatrix());
         }
 
-        const auto drawSimulationObject =
-        [&](const auto& simulationObject)
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDisable(GL_BLEND);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDepthMask(GL_TRUE);
+    }
+
+    void render(std::span<const SimulationObject> simulationObjects)
+    {
+        const auto viewportDimensions =
+            this->projectionMatrixManager.getViewportDimensions();
+
+        if (this->projectionMatrixManager.pollUpdated())
         {
-            const auto& [
-                model,
-                transform,
-                angularMotion
-            ] = simulationObject;
+            shaderBase.use();
+            shaderBase.set(
+                "projection",
+                this->projectionMatrixManager.getMatrix());
 
-            this->shader.set("model", transform.getModelMatrix());
-            // this->applyRenderData(model.renderData);
+            SsaaPass.resize(viewportDimensions);
+        }
 
-            const auto& [
-                mesh,
-                materialLibrary,
-                renderData
-            ] = model;
+        const auto SsaaFramebufferContext =
+            SsaaPass.beginScene(viewportDimensions);
 
-            this->applyRenderData(renderData);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_TRUE);
 
-            const auto meshContext = mesh.bind();
-            for (const auto& materialChunk : mesh.materialChunks)
-            {
-                const auto& [
-                    materialName,
-                    offset,
-                    count
-                ] = materialChunk;
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        // glFrontFace(GL_CCW);
 
-                const auto& [
-                    _,
-                    diffuseColor
-                ] = materialLibrary.find(materialName);
+        glDisable(GL_BLEND);
 
-                this->shader.set(
-                    "color",
-                    glm::vec4(
-                        diffuseColor[0],
-                        diffuseColor[1],
-                        diffuseColor[2],
-                        1.0f
-                ));
-
-                glDrawElements(
-                    GL_TRIANGLES,
-                    count,
-                    GL_UNSIGNED_INT,
-                    (void*)(offset * sizeof(GLuint)));
-            }
-        };
+        this->shaderBase.use();
 
         for (const auto& simulationObject : simulationObjects)
         {
-            drawSimulationObject(simulationObject);
+            const auto& [
+                objectName,
+                model,
+                transform,
+                angularMotionController
+            ] = simulationObject;
+
+            this->shaderBase.set("model", transform.getModelMatrix());
+
+            const auto& [mesh, materialLibrary] = model;
+            const auto meshContext = mesh.bind();
+
+            for (const auto& materialChunk : mesh.getMaterialChunks())
+            {
+                const auto& [materialName, offset, count] = materialChunk;
+                const auto& material = materialLibrary.find(materialName);
+
+                this->shaderBase.set(
+                    "uColor",
+                    glm::vec3
+                    {
+                        material.diffuseColor[0],
+                        material.diffuseColor[1],
+                        material.diffuseColor[2]
+                    });
+
+                glDrawElements(GL_TRIANGLES,
+                            count,
+                            GL_UNSIGNED_INT,
+                            reinterpret_cast<void*>(offset * sizeof(GLuint)));
+            }
         }
+
+        SsaaPass.render(viewportDimensions);
     }
 
 private:
-    void applyRenderData(const RenderData& renderData)
-    {
-        // this->shader.set();
-        // this->shader.set();
-        // this->shader.set();
-    }
-
-    const Shader shader =
-        Shader(
-            Shader::SourcePaths
-            {
-                .vertex = fileContents::VertexShaderGlsl::value.data,
-                .fragment = fileContents::FragmentShaderGlsl::value.data
-            });
+    Shader shaderBase;
+    SsaaPass SsaaPass;
 
     ProjectionMatrixManager& projectionMatrixManager;
 };
+
+#ifdef DEBUG
+namespace
+{
+    debugMessageCallback(
+        GLenum /* source */,
+        GLenum type,
+        GLuint /* id */,
+        GLenum severity,
+        GLsizei /* length */,
+        const GLchar* message,
+        const void* /* userParam */)
+    {
+        fprintf(stderr,
+                "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+                (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+                type,
+                severity,
+                message);
+    }
+} // unnamed namespace
+#endif
 } // namespace ctoAssetsRTIS

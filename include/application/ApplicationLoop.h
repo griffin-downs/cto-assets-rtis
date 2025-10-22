@@ -15,7 +15,7 @@
 
 namespace ctoAssetsRTIS
 {
-class GameLoop
+class ApplicationLoop
 {
 public:
     struct Configuration
@@ -23,14 +23,12 @@ public:
         std::function<bool()> nativeLoopPredicate;
     };
 #ifndef __EMSCRIPTEN__
-    GameLoop(Configuration configuration)
-    : nativeLoopPredicate(configuration.nativeLoopPredicate)
-    {
-    }
+    ApplicationLoop(Configuration configuration)
+    : nativeLoopPredicate{ configuration.nativeLoopPredicate }
+    {}
 #else
-    GameLoop(Configuration)
-    {
-    }
+    ApplicationLoop(Configuration)
+    {}
 #endif
 
     struct Parameters
@@ -75,8 +73,8 @@ public:
                 function();
             },
             &wrappedLogic,
-            0,
-            1);
+            0 /* fps */,
+            1 /* simulate_infinite_loop */);
 #endif
     }
 private:

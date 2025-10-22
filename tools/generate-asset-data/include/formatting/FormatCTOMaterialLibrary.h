@@ -21,12 +21,13 @@ auto& operator<<(
     std::ostream& ostream,
     const CTOMaterialLibrary::Definition& definition)
 {
-    const auto& [name, diffuseColor] = definition;
+    const auto& [name, diffuseColor, opacity] = definition;
 
     return
         ostream
             << "newmtl " << name << '\n'
-            << "Kd " << diffuseColor;
+            << "Kd " << diffuseColor << '\n'
+            << "d " << opacity;
 }
 
 auto& operator<<(

@@ -7,36 +7,42 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "AngularMotion.h"
+
+#include "AngularMotionController.h"
+#include "graphics/model/Model.h"
+#include "input/InputStates.h"
 #include "Rotation.h"
 #include "Transform.h"
-#include "input/InputStates.h"
 
 
 namespace ctoAssetsRTIS
 {
 struct SimulationObject
 {
-    const Model& model;
-    Transform transform;
-    AngularMotion angularMotion;
-
-    void update(
-        const InputStates& inputStates,
-        float dt)
+    enum class Name
     {
-        angularMotion.addMouseImpulse(inputStates.mouseStates);
-        angularMotion.addKeyboardImpulse(inputStates.keyStates);
+        DodecahedronCage,
+        VoronoiSphere
+    };
 
-        auto deltaRadians = angularMotion.updateMotion(dt);
+    Name name;
+    Model model;
+    Transform transform;
+    AngularMotionController angularMotionController;
 
-        transform
+    void applyInput(const InputStates& inputStates)
+    {
+        this->angularMotionController.applyInput(inputStates);
+    }
+
+    void updateMotion(float deltaSeconds)
+    {
+        const auto deltaRadians =
+            this->angularMotionController.updateMotion(deltaSeconds);
+
+        this->transform
             .rotation
-            .rotateYawPitchRollRadians({
-                .yaw = deltaRadians.x,
-                .pitch = deltaRadians.y,
-                .roll = deltaRadians.z
-            });
+            .applyDeltaRadians(deltaRadians);
     }
 };
 } // namespace ctoAssetsRTIS

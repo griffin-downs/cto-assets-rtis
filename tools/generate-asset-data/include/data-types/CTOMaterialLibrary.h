@@ -19,6 +19,7 @@ struct CTOMaterialLibrary
     {
         std::string name;
         std::array<float, 3> diffuseColor;
+        float opacity;
     };
 
     std::vector<Definition> definitions;

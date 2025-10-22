@@ -6,24 +6,25 @@
 
 #pragma once
 
-#include <string_view>
+#include <array>
 #include <span>
 
-#include "graphics/rendering/CpuGeometry.h"
+#ifdef __EMSCRIPTEN__
+#include <GLES3/gl3.h>
+#else
+#include <GL/glew.h>
+#endif
+
+#include "Vertex.h"
 
 
 namespace ctoAssetsRTIS
 {
-struct MeshData
+struct CpuGeometry
 {
-    struct MaterialChunk
-    {
-        std::string_view name;
-        size_t offset;
-        size_t count;
-    };
-
-    const CpuGeometry cpuGeometry;
-    const std::span<const MaterialChunk> materialChunks;
+    const std::span<const GLfloat> vertices;
+    const std::span<const GLuint> faceIndices;
+    const std::span<const VertexAttribute> vertexAttributes;
+    const GLuint vertexStride;
 };
 } // namespace ctoAssetsRTIS

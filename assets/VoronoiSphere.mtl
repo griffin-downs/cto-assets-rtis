@@ -1,10 +1,10 @@
-# Blender 4.0.2 MTL File: 'VoronoiSphere.blend'
+# Blender 4.5.3 LTS MTL File: 'VoronoiSphere.blend'
 # www.blender.org
 
-newmtl Material.001
+newmtl VoronoiSphereMaterial
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.753070 0.066623 0.028424
+Kd 0.000000 0.603828 0.318547
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000

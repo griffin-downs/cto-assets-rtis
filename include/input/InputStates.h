@@ -28,6 +28,11 @@ struct KeyStates
     bool qPressed = false;
     bool ePressed = false;
 
+    bool upPressed = false;
+    bool downPressed = false;
+    bool leftPressed = false;
+    bool rightPressed = false;
+
     void setKeyState(int key, bool pressed)
     {
         switch (key)
@@ -50,9 +55,30 @@ struct KeyStates
             case GLFW_KEY_E:
                 ePressed = pressed;
                 break;
+            case GLFW_KEY_UP:
+                upPressed = pressed;
+                break;
+            case GLFW_KEY_DOWN:
+                downPressed = pressed;
+                break;
+            case GLFW_KEY_LEFT:
+                leftPressed = pressed;
+                break;
+            case GLFW_KEY_RIGHT:
+                rightPressed = pressed;
+                break;
             default:
                 break;
         }
+    }
+
+    auto anyKeyPressed() const
+    {
+        return
+            this->wPressed    || this->aPressed     || this->sPressed ||
+            this->dPressed    || this->qPressed     || this->ePressed ||
+            this->upPressed   || this->downPressed  ||
+            this->leftPressed || this->rightPressed;
     }
 };
 
@@ -72,16 +98,6 @@ private:
     {
         auto rounded = static_cast<int>(std::lround(value));
         return clampToViewport(rounded, maximum);
-    }
-
-    template <typename VectorType>
-    static constexpr auto isZeroVector(
-        const VectorType& vector,
-        typename VectorType::value_type eps =
-            std::numeric_limits<typename VectorType::value_type>::epsilon()
-    )
-    {
-        return glm::all(glm::epsilonEqual(vector, VectorType(0), eps));
     }
 
 public:
@@ -120,6 +136,14 @@ public:
         this->movementAccumulator.addSamplePixels(
             static_cast<float>(clampedX),
             static_cast<float>(clampedY));
+    }
+
+    void addDeviceMovement(double deltaX, double deltaY)
+    {
+        this->updateDevicePosition(
+            deltaX * viewportDimensions.getWidth(),
+            deltaY * viewportDimensions.getHeight(),
+            this->viewportDimensions);
     }
 
     auto isContactActive() const

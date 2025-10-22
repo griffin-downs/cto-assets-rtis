@@ -16,44 +16,33 @@ function(batch_stringify_files)
         set(exe "")
     endif()
 
-    set(batch_stringify_files
-        "${TOOLS_BINARY_DIRECTORY}/BatchStringifyFiles${exe}"
-    )
+    set(tool "${TOOLS_BINARY_DIRECTORY}/BatchStringifyFiles${exe}")
+    set(args_file "${CMAKE_BINARY_DIR}/BatchStringifyFilesArguments.txt")
+    set(manifest  "${CMAKE_BINARY_DIR}/BatchStringifyFilesOutput.txt")
 
-    set(arguments_file "${CMAKE_BINARY_DIR}/BatchStringifyFilesArguments.txt")
-    file(WRITE "${arguments_file}"
-        "OUTPUT_DIRECTORY=${${prefix}_OUTPUT_DIRECTORY}\n"
+    # Build the list of echo-append commands that write the args file
+    set(_cmds)
+    list(APPEND _cmds
+        COMMAND "${CMAKE_COMMAND}" -E rm -f "${args_file}"
+        COMMAND "${CMAKE_COMMAND}" -E echo "OUTPUT_DIRECTORY=${${prefix}_OUTPUT_DIRECTORY}" > "${args_file}"
     )
-    foreach(input_file IN LISTS ${prefix}_INPUT_FILES)
-        file(APPEND "${arguments_file}" "INPUT_FILE=${input_file}\n")
+    foreach(f IN LISTS ${prefix}_INPUT_FILES)
+        list(APPEND _cmds
+            COMMAND "${CMAKE_COMMAND}" -E echo "INPUT_FILE=${f}" >> "${args_file}")
     endforeach()
 
-    set(tool_output_file "${CMAKE_BINARY_DIR}/BatchStringifyFilesOutput.txt")
-    execute_process(
-        COMMAND "${batch_stringify_files}"
-        INPUT_FILE "${arguments_file}"
-        OUTPUT_FILE "${tool_output_file}"
+    add_custom_command(
+        OUTPUT "${manifest}"
+        ${_cmds}
+        COMMAND "${tool}" < "${args_file}" > "${manifest}"
+        DEPENDS ${${prefix}_INPUT_FILES}
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+        COMMENT "BatchStringifyFiles → ${manifest}"
+        VERBATIM
     )
 
-    set(target_index 0)
-    file(STRINGS "${tool_output_file}" tool_output)
-    foreach(line IN LISTS tool_output)
-        if(line MATCHES "^INPUT_FILE=")
-            string(REGEX REPLACE "^INPUT_FILE=" "" line ${line})
-        else()
-            continue()
-        endif()
-
-        set(target_name batch_stringify_${target_index})
-
-        add_custom_target(${target_name} ALL
-            DEPENDS "${line}"
-            COMMENT "CUSTOM TARGET FOR ${line}"
-        )
-
-        add_dependencies("${${prefix}_TARGET_NAME}" ${target_name})
-
-        math(EXPR target_index "${target_index} + 1")
-    endforeach()
+    add_custom_target(BatchStringifyFilesOutput
+        DEPENDS "${manifest}"
+    )
+    add_dependencies("${${prefix}_TARGET_NAME}" BatchStringifyFilesOutput)
 endfunction()

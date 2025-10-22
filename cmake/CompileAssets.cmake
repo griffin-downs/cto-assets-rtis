@@ -56,7 +56,9 @@ function(compile_assets)
         COMMAND
             "${batch_stringify_files}" < "${generate_asset_data_output}"
                 > "${output_file}"
-        DEPENDS "${arguments_file}"
+        DEPENDS
+            "${arguments_file}"
+            "${${prefix}_INPUT_FILES}"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 
